@@ -20,37 +20,32 @@
 
 ## 🎯 What is VYOM?
 
-<table>
-<tr>
-<td width="50%">
-
 **VYOM (Virtual Yet Omnipotent Machine)** is a cutting-edge AI assistant that brings the future of personal computing to your desktop today.
+
+<div align="center">
 
 🎭 **Inspired by J.A.R.V.I.S.** from Iron Man, VYOM combines:
 - 🧠 Advanced AI reasoning
 - 🎤 Natural voice interaction  
-- 🌐 Intelligent web automation
 - ⚡ Lightning-fast execution
+- 🎯 Intelligent task automation
 
 Transform simple voice commands into complex digital tasks with unprecedented ease and efficiency.
 
-</td>
-<td width="50%">
+</div>
+
+### 💻 How it Works
 
 ```python
 # Just say it, VYOM does it!
 "VYOM, write me a professional email to schedule a meeting"
 
-"VYOM, automate my morning news reading"
+"VYOM, help me draft a professional email"
 
-"VYOM, help me fill out this form on the website"
+"VYOM, generate content for my presentation"
 
 # That's it! No complex commands needed.
 ```
-
-</td>
-</tr>
-</table>
 
 ---
 
@@ -241,8 +236,6 @@ output: "I'll create a professional follow-up email for you..."
 | 🧯 **Offline Mode** (Local AI) | High | 🔄 Research | Q4 2025 |
 | 🔗 **API Endpoints** | Low | 📋 Planned | Q4 2025 |
 
-
-
 <details>
 <summary><b>🎯 Long-term Vision</b></summary>
 
@@ -253,9 +246,7 @@ output: "I'll create a professional follow-up email for you..."
 - 🌍 **Multi-language Support** - Global accessibility
 
 </details>
-
-</div> 
-
+</div>
 ---
 
 ## 🤝 Contributing
@@ -280,10 +271,7 @@ We ❤️ contributions! VYOM is a community-driven project.
 
 **[📋 Full Contributing Guide](CONTRIBUTING.md)** • **[🐛 Report Issues](https://github.com/th-shivam/vyom/issues)** • **[💡 Request Features](https://github.com/th-shivam/vyom/issues/new?template=feature_request.md)**
 
----
 
-
----
 
 ## 🏆 Achievements & Recognition
 
@@ -345,7 +333,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 **Need Help?** We're here for you!
 
 [![GitHub Issues](https://img.shields.io/badge/GitHub-Issues-red?style=for-the-badge&logo=github)](https://github.com/th-shivam/vyom/issues)
-[![Email](https://img.shields.io/badge/Email-Support-blue?style=for-the-badge&logo=gmail)](mailto:anotnet.rudra@gmail.com)
+[![Discord](https://img.shields.io/badge/Discord-Community-7289DA?style=for-the-badge&logo=discord)](https://discord.gg/vyom)
+[![Email](https://img.shields.io/badge/Email-Support-blue?style=for-the-badge&logo=gmail)](mailto:support@vyom.dev)
 
 </div>
 

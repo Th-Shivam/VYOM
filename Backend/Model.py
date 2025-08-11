@@ -11,7 +11,8 @@ co = cohere.Client(api_key=CohereAPIKey)
 # List of functions to be used in the model
 
 funcs = [
-    "exit" , "general" , "realtime" , "open" , "close" , "play" , "generate image" , "system" , "content" , "google search" , "youtube search" , "reminder" 
+    "exit" , "general" , "realtime" , "open" , "close" , "play" , "generate image" , "system" , "content" , "google search" , "youtube search" , "reminder",
+    "todo", "note", "list todos", "list notes", "complete todo", "delete note", "delete todo"
 ]
 
 #initialize an emppty list to store messages 
@@ -35,6 +36,13 @@ You will decide whether a query is a 'general' query, a 'realtime' query, or is 
 -> Respond with 'content (topic)' if a query is asking to write any type of content like application, codes, emails or anything else about a specific topic but if the query is asking to write multiple types of content, respond with 'content 1st topic, content 2nd topic' and so on.
 -> Respond with 'google search (topic)' if a query is asking to search a specific topic on google but if the query is asking to search multiple topics on google, respond with 'google search 1st topic, google search 2nd topic' and so on.
 -> Respond with 'youtube search (topic)' if a query is asking to search a specific topic on youtube but if the query is asking to search multiple topics on youtube, respond with 'youtube search 1st topic, youtube search 2nd topic' and so on.
+-> Respond with 'todo (task description)' if a query is asking to add a new todo item like 'add a todo to buy groceries' respond with 'todo buy groceries'.
+-> Respond with 'list todos' if a query is asking to show all todo items like 'show my todos' or 'what are my tasks'.
+-> Respond with 'complete todo (task id)' if a query is asking to mark a todo as completed like 'mark task 1 as done' respond with 'complete todo 1'.
+-> Respond with 'delete todo (task id)' if a query is asking to delete a todo item like 'delete task 1' or 'remove task 1' respond with 'delete todo 1'.
+-> Respond with 'note (title: content)' if a query is asking to create a new note like 'create a note titled meeting notes with content discussed project timeline' respond with 'note meeting notes: discussed project timeline'.
+-> Respond with 'list notes' if a query is asking to show all notes like 'show my notes' or 'what notes do I have'.
+-> Respond with 'delete note (title)' if a query is asking to delete a note like 'delete note meeting notes' or 'remove note meeting notes' respond with 'delete note meeting notes'.
 *** If the query is asking to perform multiple tasks like 'open facebook, telegram and close whatsapp' respond with 'open facebook, open telegram, close whatsapp' ***
 *** If the user is saying goodbye or wants to end the conversation like 'bye jarvis.' respond with 'exit'.***
 *** Respond with 'general (query)' if you can't decide the kind of query or if a query is asking to perform a task which is not mentioned above. ***

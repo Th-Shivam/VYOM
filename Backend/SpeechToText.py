@@ -70,8 +70,13 @@ user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 chrome_options.add_argument(f'user-agent={user_agent}')
 chrome_options.add_argument("--use-fake-ui-for-media-stream")
 chrome_options.add_argument("--use-fake-device-for-media-stream")
-# Initialize the Chrome WebDriver with the specified options.
 
+# Add Chrome binary path
+chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+# If the above path doesn't work, try this alternative path
+# chrome_options.binary_location = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+
+# Initialize the Chrome WebDriver with the specified options.
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
 

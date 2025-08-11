@@ -130,6 +130,7 @@ def OpenApp(app , sess=requests.session()):
 
         return True
 
+
 def CloseApp(app):
 
     if "chrome" in app:

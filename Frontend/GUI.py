@@ -1,12 +1,14 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QStackedWidget, QWidget, QLineEdit, QGridLayout, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QLabel, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QStackedWidget, QWidget, QLineEdit, QGridLayout, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QLabel, QSizePolicy, QListWidget, QListWidgetItem
 from PyQt5.QtGui import QIcon, QPainter, QMovie, QColor, QTextCharFormat, QFont, QPixmap, QTextBlockFormat
 from PyQt5.QtCore import Qt, QSize, QTimer
 from dotenv import dotenv_values
 import sys
 import os
+import json
+from pathlib import Path
 
 env_vars = dotenv_values("*.env")
-Assistantname = env_vars.get("Assistantname")
+Assistantname = "VYOM"
 current_dir = os.getcwd()
 old_chat_message = ""
 TempDirPath = rf"{current_dir}\Frontend\Files"
@@ -283,18 +285,115 @@ class MessageScreen(QWidget):
         self.setFixedHeight(screen_height)
         self.setFixedWidth(screen_width)
                   
+class NotesSection(QWidget):
+    def __init__(self):
+        super(NotesSection, self).__init__()
+        self.initUI()
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.loadNotes)
+        self.timer.start(1000)  # Update every second
+
+    def initUI(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # Title
+        title = QLabel("My Notes")
+        title.setStyleSheet("color: white; font-size: 24px; font-weight: bold;")
+        layout.addWidget(title)
+        
+        # Notes list
+        self.notes_list = QListWidget()
+        self.notes_list.setStyleSheet("""
+            QListWidget {
+                background-color: #1a1a1a;
+                border: 1px solid #333;
+                border-radius: 5px;
+                color: white;
+                font-size: 14px;
+            }
+            QListWidget::item {
+                padding: 10px;
+                border-bottom: 1px solid #333;
+            }
+            QListWidget::item:selected {
+                background-color: #2a2a2a;
+            }
+        """)
+        layout.addWidget(self.notes_list)
+        
+        # Note content
+        self.note_content = QTextEdit()
+        self.note_content.setReadOnly(True)
+        self.note_content.setStyleSheet("""
+            QTextEdit {
+                background-color: #1a1a1a;
+                border: 1px solid #333;
+                border-radius: 5px;
+                color: white;
+                font-size: 14px;
+                padding: 10px;
+            }
+        """)
+        layout.addWidget(self.note_content)
+        
+        self.setStyleSheet("background-color: black;")
+        
+        # Connect list selection to content display
+        self.notes_list.itemClicked.connect(self.showNoteContent)
+
+    def loadNotes(self):
+        try:
+            notes_file = Path("Data/Productivity/notes.json")
+            if notes_file.exists():
+                with open(notes_file, 'r') as f:
+                    notes = json.load(f)
+                
+                # Update list if needed
+                current_items = [self.notes_list.item(i).text() for i in range(self.notes_list.count())]
+                new_items = [note['title'] for note in notes]
+                
+                if set(current_items) != set(new_items):
+                    self.notes_list.clear()
+                    for note in notes:
+                        item = QListWidgetItem(note['title'])
+                        item.setData(Qt.UserRole, note['content'])
+                        self.notes_list.addItem(item)
+        except Exception as e:
+            print(f"Error loading notes: {e}")
+
+    def showNoteContent(self, item):
+        content = item.data(Qt.UserRole)
+        self.note_content.setText(content)
+
 class CustomTopBar(QWidget):
     
     def __init__(self, parent, stacked_widget):
         super().__init__(parent)
-        self.initUI()
-        self.current_screen = None
         self.stacked_widget = stacked_widget
+        self.initUI()
     
     def initUI(self):
-        self.setFixedHeight(50)
         layout = QHBoxLayout(self)
-        layout.setAlignment(Qt.AlignRight)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Add Notes button
+        notes_button = QPushButton("Notes")
+        notes_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2a2a2a;
+                color: white;
+                border: none;
+                padding: 5px 15px;
+                border-radius: 3px;
+            }
+            QPushButton:hover {
+                background-color: #3a3a3a;
+            }
+        """)
+        notes_button.clicked.connect(self.showNotesScreen)
+        layout.addWidget(notes_button)
+        
         home_button = QPushButton()
         home_icon = QIcon(GraphicsDirectoryPath("Home.png"))
         home_button.setIcon(home_icon)
@@ -342,11 +441,10 @@ class CustomTopBar(QWidget):
         layout.addWidget(line_frame)
         self.draggable = True
         self.offset = None
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.fillRect(self.rect(), Qt.white)
-        super().paintEvent(event)
+        
+        self.setStyleSheet("background-color: #1a1a1a;")
+        self.setFixedHeight(30)
+        self.setLayout(layout)
 
     def minimizeWindow(self):
         self.parent().showMinimized()
@@ -371,26 +469,8 @@ class CustomTopBar(QWidget):
             new_pos = event.globalPos() - self.offset
             self.parent().move(new_pos)
 
-    def showMessageScreen(self):
-        if self.current_screen is not None:
-            self.current_screen.hide()
-        
-        message_screen = MessageScreen(self)
-        layout = self.parent().layout()
-        if layout is not None:
-            layout.addWidget(message_screen)
-        self.current_screen = message_screen
-
-    def showInitialScreen(self):
-        if self.current_screen is not None:
-            self.current_screen.hide()
-
-        initial_screen = InitialScreen(self)
-        layout = self.parent().layout()
-        if layout is not None :
-            layout.addWidget(initial_screen)
-        self.current_screen = initial_screen
-
+    def showNotesScreen(self):
+        self.stacked_widget.setCurrentIndex(2)  # Switch to notes screen
 
 class MainWindow(QMainWindow):
 
@@ -406,8 +486,10 @@ class MainWindow(QMainWindow):
         stacked_widget = QStackedWidget(self)
         initial_screen = InitialScreen()
         message_screen = MessageScreen()
+        notes_screen = NotesSection()
         stacked_widget.addWidget(initial_screen)
         stacked_widget.addWidget(message_screen)
+        stacked_widget.addWidget(notes_screen)
         self.setGeometry(0, 0, screen_width, screen_height)
         self.setStyleSheet("background-color: black;")
         top_bar = CustomTopBar(self, stacked_widget)

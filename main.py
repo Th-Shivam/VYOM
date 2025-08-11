@@ -9,11 +9,12 @@ from Frontend.GUI import (
     GetMicrophoneStatus,
     GetAssistantStatus )
 from Backend.Model import FirstLayerDMM
-from Backend.RealTimeSearchEngine import RealtimeSearchEngine
+from Backend.RealTimeSearchEngine import RealTimeSearchEngine
 from Backend.Automation import Automation
 from Backend.SpeechToText import SpeechRecognition
 from Backend.ChatBot import ChatBot
 from Backend.TextToSpeech import TextToSpeech
+from Backend.Productivity import ProductivityManager
 from dotenv import dotenv_values
 from asyncio import run
 from time import sleep
@@ -24,7 +25,7 @@ import os
 
 env_vars = dotenv_values(".env")
 Username = env_vars.get("Username")
-Assistantname = env_vars.get("Assistantname")
+Assistantname = "VYOM"
 DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
 {Assistantname} : Welcome {Username}. I am doing well. How may i help you?'''
 subprocesses = []
@@ -53,7 +54,8 @@ def ChatLogIntegration():
         elif entry["role"] == "assistant":
             formatted_chatlog += f"Assistant: {entry['content']}\n"
     formatted_chatlog = formatted_chatlog.replace("User",Username + " ")
-    formatted_chatlog = formatted_chatlog.replace("Assistant",Assistantname + " ")
+    
+    formatted_chatlog = formatted_chatlog.replace("Assistant", Assistantname + " ")
     
     with open(TempDirectoryPath('Database.data'), 'w', encoding='utf-8') as file:
         file.write(AnswerModifier(formatted_chatlog))
@@ -101,6 +103,69 @@ def MainExecution():
         [" ".join(i.split()[1:]) for i in Decision if i.startswith("general") or i.startswith("realtime")]
     )
     
+    # Initialize ProductivityManager
+    productivity = ProductivityManager()
+    
+    # Handle productivity-related commands
+    for command in Decision:
+        if command.startswith("todo "):
+            task = command[5:]  # Remove "todo " prefix
+            response = productivity.add_todo(task)
+            ShowTextToScreen(f"{Assistantname} : {response}")
+            SetAssistantStatus("Answering ...")
+            TextToSpeech(response)
+            return True
+            
+        elif command == "list todos":
+            response = productivity.list_todos()
+            ShowTextToScreen(f"{Assistantname} : {response}")
+            SetAssistantStatus("Answering ...")
+            TextToSpeech(response)
+            return True
+            
+        elif command.startswith("complete todo "):
+            task_id = int(command[13:])  # Remove "complete todo " prefix
+            response = productivity.complete_todo(task_id)
+            ShowTextToScreen(f"{Assistantname} : {response}")
+            SetAssistantStatus("Answering ...")
+            TextToSpeech(response)
+            return True
+            
+        elif command.startswith("delete todo "):
+            task_id = int(command[11:])  # Remove "delete todo " prefix
+            response = productivity.delete_todo(task_id)
+            ShowTextToScreen(f"{Assistantname} : {response}")
+            SetAssistantStatus("Answering ...")
+            TextToSpeech(response)
+            return True
+            
+        elif command.startswith("note "):
+            note_content = command[5:]  # Remove "note " prefix
+            if ":" in note_content:
+                title, content = note_content.split(":", 1)
+                response = productivity.add_note(title.strip(), content.strip())
+                ShowTextToScreen(f"{Assistantname} : {response}")
+                SetAssistantStatus("Answering ...")
+                TextToSpeech(response)
+                return True
+            
+        elif command == "list notes":
+            response = productivity.list_notes()
+            ShowTextToScreen(f"{Assistantname} : {response}")
+            SetAssistantStatus("Answering ...")
+            TextToSpeech(response)
+            return True
+            
+        elif command.startswith("delete note "):
+            # Extract the title from the command
+            title = command[11:].strip()  # Remove "delete note " prefix and any extra spaces
+            print(f"Attempting to delete note with title: {title}")
+            response = productivity.delete_note(title)
+            ShowTextToScreen(f"{Assistantname} : {response}")
+            SetAssistantStatus("Answering ...")
+            TextToSpeech(response)
+            return True
+    
     for queries in Decision:
         if "generate " in queries:
             ImageGenerationQuery = str(queries)
@@ -114,22 +179,22 @@ def MainExecution():
     
     if ImageExecution == True:
         
-        with open(r"Frontend\Files\ImageGeneratoion.data", "w") as file:
+        with open(r"Frontend\Files\ImageGeneration.data", "w") as file:
             file.write(f"{ImageGenerationQuery},True")
         
         try:
             p1 = subprocess.Popen(['python', r'Backend\ImageGeneration.py'],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                stdin=subprocess.PIPE, shell=False)
+                                stdin=subprocess.PIPE, shell=True)
             subprocesses.append(p1)
         
         except Exception as e:
             print(f"Error starting ImageGeneration.py: {e}")
     
-    if G and R :
+    if G and R:
         
         SetAssistantStatus("Searching ...")
-        Answer = RealtimeSearchEngine(QueryModifier(Mearged_query))
+        Answer = RealTimeSearchEngine(QueryModifier(Mearged_query))
         ShowTextToScreen(f"{Assistantname} : {Answer}")
         SetAssistantStatus("Answering ...")
         TextToSpeech(Answer)
@@ -150,7 +215,7 @@ def MainExecution():
             elif "realtime" in Queries:
                 SetAssistantStatus("Searching ...")
                 QueryFinal = Queries.replace("realtime ","")
-                Answer = RealtimeSearchEngine(QueryModifier(QueryFinal))
+                Answer = RealTimeSearchEngine(QueryModifier(QueryFinal))
                 ShowTextToScreen(f"{Assistantname} : {Answer}")
                 SetAssistantStatus("Answering ...")
                 TextToSpeech(Answer)

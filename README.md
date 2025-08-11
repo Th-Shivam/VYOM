@@ -171,7 +171,7 @@ Add your API keys to the `.env` file:
 
 ```env
 # Required API Keys
-GROQ_API_KEY=your_groq_key_here
+GroqAPIKey=your_groq_key_here
 CohereAPIKey=your_cohere_key_here
 HuggingFaceAPIKey=your_hf_key_here
 

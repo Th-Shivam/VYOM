@@ -3,7 +3,7 @@ from groq import Groq  # Importing the Groq library to use its API.
 from json import load, dump  # Importing functions to read and write JSON files.
 import datetime  # Importing the datetime module for real-time date and time information.
 from dotenv import dotenv_values  # Importing dotenv_values to read environment variables from a .env file.
-
+import os
 # Load environment variables from the .env file.
 env_vars = dotenv_values(".env")
 
@@ -21,6 +21,10 @@ System = f"""Hello, I am {Username}, You are a very accurate and advanced AI cha
 *** Just answer the question from the provided data in a professional way. ***"""
 
 # Try to load the chat log from a JSON file, or create an empty one if it doesn't exist.
+chatlog_path = r"Data\ChatLog.json"
+
+# Ensure Data directory exists
+os.makedirs(os.path.dirname(chatlog_path), exist_ok=True)
 try:
     with open(r"Data\ChatLog.json", "r") as f:
         messages = load(f)
@@ -74,7 +78,7 @@ def Information():
 
 # Function to handle real-time search and response generation.
 
-def RealTimeSearchEngine(prompt):
+def RealtimeSearchEngine(prompt):
     global SystemChatBot , messages
 
     with open(r"Data\ChatLog.json", "r") as f:
@@ -119,4 +123,4 @@ def RealTimeSearchEngine(prompt):
 if __name__ == "__main__":
     while True:
         prompt = input("Enter your query: ")
-        print(RealTimeSearchEngine(prompt))
+        print(RealtimeSearchEngine(prompt))

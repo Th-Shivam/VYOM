@@ -177,7 +177,7 @@ HuggingFaceAPIKey=your_hf_key_here
 
 # Personal Configuration
 Username=your_name_here
-AssistantName=VYOM
+Assistantname=VYOM
 InputLanguage=en
 AssistantVoice=en-CA-LiamNeural
 ```

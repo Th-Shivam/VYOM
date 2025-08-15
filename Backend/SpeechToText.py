@@ -55,14 +55,20 @@ HtmlCode = '''<!DOCTYPE html>
 # Replace the language setting in the HTML code with the input language from the environment variables.
 HtmlCode = str(HtmlCode).replace("recognition.lang = '';", f"recognition.lang = '{InputLanguage}';")
 
-# Write the modified HTML code to a file.
-with open(r"Data\Voice.html", "w") as f:
-    f.write(HtmlCode)
-
 # Get the current working directory.
 current_dir = os.getcwd()
+
+# ✨ Use os.path.join for cross-platform compatibility
+data_dir = os.path.join(current_dir, "Data")
+os.makedirs(data_dir, exist_ok=True) # Ensure the directory exists
+voice_html_path = os.path.join(data_dir, "Voice.html")
+
+# Write the modified HTML code to a file.
+with open(voice_html_path, "w") as f:
+    f.write(HtmlCode)
+
 # Generate the file path for the HTML file.
-Link = f"{current_dir}/Data/Voice.html"
+Link = f"file:///{voice_html_path}"
 
 # Set Chrome options for the WebDriver.
 chrome_options = Options()
@@ -71,33 +77,33 @@ chrome_options.add_argument(f'user-agent={user_agent}')
 chrome_options.add_argument("--use-fake-ui-for-media-stream")
 chrome_options.add_argument("--use-fake-device-for-media-stream")
 
-# Add Chrome binary path
-chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-# If the above path doesn't work, try this alternative path
-# chrome_options.binary_location = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+# ✨ REMOVED: The hardcoded Windows path is no longer needed.
+# chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 
-# Initialize the Chrome WebDriver with the specified options.
+# Initialize the Chrome WebDriver. WebDriver Manager will find Chrome automatically.
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
-# Define the path for temporary files . 
+# ✨ Use os.path.join for cross-platform compatibility
+TempDirPath = os.path.join(current_dir, "Frontend", "Files")
+os.makedirs(TempDirPath, exist_ok=True) # Ensure the directory exists
 
-TempDirPath = rf"{current_dir}/Frontend/Files"
-
-# Function to set the assistants status by writing it into a  file
-
+# Function to set the assistants status by writing it into a file
 def SetAssistantStatus(Status):
-    with open(rf"{TempDirPath}/Status.data", "w" , encoding='utf-8') as file:
+    status_file_path = os.path.join(TempDirPath, "Status.data")
+    with open(status_file_path, "w" , encoding='utf-8') as file:
         file.write(Status)
 
 # Function to modify a query to ensure proper punctuation and formatting.
 def QueryModifier(Query):
     new_query = Query.lower().strip()
+    if not new_query:
+        return ""
     query_words = new_query.split()
     question_words = ["how", "what", "who", "where", "when", "why", "which", "whose", "whom", "can you", "what's", "wh"]
     
     # Check if the query is a question and add a question mark if necessary.
-    if any(word + " " in new_query for word in question_words):
+    if any(word in new_query for word in question_words):
         if query_words[-1][-1] in ['.', '?', '!']:
             new_query = new_query[:-1] + "?"
         else:
@@ -112,14 +118,13 @@ def QueryModifier(Query):
     return new_query.capitalize()
 
 # Translator   
-
 def UniversalTranslator(Text):
     english_translation = mt.translate(Text, "en" , "auto")
     return english_translation.capitalize()
 
 def SpeechRecognition():
     # Open the HTML file in the browser 
-    driver.get("file:///" + Link)
+    driver.get(Link)
 
     # ✅ Wait for the start button to be present and clickable
     try:
@@ -137,21 +142,16 @@ def SpeechRecognition():
             if Text:
                 driver.find_element(by=By.ID , value="end").click()
                 
-                if InputLanguage.lower() == "en" or "en" in InputLanguage.lower():
+                if InputLanguage and (InputLanguage.lower() == "en" or "en" in InputLanguage.lower()):
                     return QueryModifier(Text)
                 else:
                     SetAssistantStatus("Translating")
                     return QueryModifier(UniversalTranslator(Text))
-        except Exception as e:
+        except Exception:
             pass
-
 
 if __name__ == "__main__":
     while True:
         Text = SpeechRecognition()
-        print(Text)
-
-
-
-
-      
+        if Text:
+            print(Text)

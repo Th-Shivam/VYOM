@@ -11,8 +11,15 @@ env_vars = dotenv_values("*.env")
 Assistantname = "VYOM"
 current_dir = os.getcwd()
 old_chat_message = ""
-TempDirPath = rf"{current_dir}\Frontend\Files"
-GraphicsDirPath = rf"{current_dir}\Frontend\Graphics"
+
+# --- MODIFIED PATHS for cross-platform compatibility ---
+TempDirPath = os.path.join(current_dir, "Frontend", "Files")
+GraphicsDirPath = os.path.join(current_dir, "Frontend", "Graphics")
+
+# Ensure directories exist
+os.makedirs(TempDirPath, exist_ok=True)
+os.makedirs(GraphicsDirPath, exist_ok=True)
+
 
 def AnswerModifier(Answer):
     lines = Answer.split('\n')
@@ -41,20 +48,20 @@ def QueryModifier(Query):
     return new_query.capitalize()
 
 def SetMicrophoneStatus(Command):
-    with open(rf'{TempDirPath}\Mic.data', "w", encoding='utf-8') as file:
+    with open(os.path.join(TempDirPath, 'Mic.data'), "w", encoding='utf-8') as file:
         file.write(Command)
 
 def GetMicrophoneStatus():
-    with open(rf'{TempDirPath}\Mic.data', "r", encoding='utf-8') as file:
+    with open(os.path.join(TempDirPath, 'Mic.data'), "r", encoding='utf-8') as file:
         Status = file.read()
     return Status
 
 def SetAssistantStatus(Status):
-    with open(rf'{TempDirPath}\Status.data', "w", encoding='utf-8') as file:
+    with open(os.path.join(TempDirPath, 'Status.data'), "w", encoding='utf-8') as file:
         file.write(Status)
 
 def GetAssistantStatus():
-    with open(rf'{TempDirPath}\Status.data', "r", encoding='utf-8') as file:
+    with open(os.path.join(TempDirPath, 'Status.data'), "r", encoding='utf-8') as file:
         Status = file.read()
     return Status
 
@@ -65,15 +72,15 @@ def MicButtonClosed():
     SetMicrophoneStatus("True")
 
 def GraphicsDirectoryPath(Filename):
-    Path = rf'{GraphicsDirPath}\{Filename}'
+    Path = os.path.join(GraphicsDirPath, Filename)
     return Path
 
 def TempDirectoryPath(Filename):
-    Path = rf'{TempDirPath}\{Filename}'
+    Path = os.path.join(TempDirPath, Filename)
     return Path
 
 def ShowTextToScreen(Text):
-    with open(rf'{TempDirPath}\Responses.data', "w", encoding='utf-8') as file:
+    with open(os.path.join(TempDirPath, 'Responses.data'), "w", encoding='utf-8') as file:
         file.write(Text)
 
 class ChatSection(QWidget):
@@ -210,17 +217,13 @@ class InitialScreen(QWidget):
 
     def __init__(self, parent = None):
         super().__init__(parent)
-        desktop = QApplication.desktop()
-        screen_width = desktop.screenGeometry().width()
-        screen_height = desktop.screenGeometry().height()
         content_layout = QVBoxLayout(self)
         content_layout.setContentsMargins(0, 0, 0, 0)
         gif_label = QLabel()
         movie = QMovie(GraphicsDirectoryPath('jarvis.gif'))
         gif_label.setMovie(movie)
-        max_gif_size_H = int(screen_width / 16 * 9)
-        movie.setScaledSize(QSize(screen_width, max_gif_size_H))
-        gif_label.setAlignment(Qt.AlignCenter)
+        # Scale GIF proportionally
+        gif_label.setScaledContents(True)
         movie.start()
         gif_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.icon_label = QLabel()
@@ -239,8 +242,7 @@ class InitialScreen(QWidget):
         content_layout.addWidget(self.icon_label, alignment=Qt.AlignCenter)
         content_layout.setContentsMargins(0, 0, 0, 150)
         self.setLayout(content_layout)
-        self.setFixedHeight(screen_height)
-        self.setFixedWidth(screen_width)
+        # --- DELETED setFixed... lines ---
         self.setStyleSheet("background-color: black;")
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.SpeechRecogText)
@@ -272,9 +274,6 @@ class MessageScreen(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        desktop = QApplication.desktop()
-        screen_width = desktop.screenGeometry().width()
-        screen_height = desktop.screenGeometry().height()
         layout = QVBoxLayout()
         label = QLabel("")
         layout.addWidget(label)
@@ -282,8 +281,7 @@ class MessageScreen(QWidget):
         layout.addWidget(Chat_section)
         self.setLayout(layout) 
         self.setStyleSheet("background-color: black;") 
-        self.setFixedHeight(screen_height)
-        self.setFixedWidth(screen_width)
+        # --- DELETED setFixed... lines ---
                   
 class NotesSection(QWidget):
     def __init__(self):
@@ -392,7 +390,6 @@ class CustomTopBar(QWidget):
             }
         """)
         notes_button.clicked.connect(self.showNotesScreen)
-        layout.addWidget(notes_button)
         
         home_button = QPushButton()
         home_icon = QIcon(GraphicsDirectoryPath("Home.png"))
@@ -434,6 +431,7 @@ class CustomTopBar(QWidget):
         layout.addStretch(1)
         layout.addWidget(home_button)
         layout.addWidget(message_button)
+        layout.addWidget(notes_button) # Added notes button to layout
         layout.addStretch(1)
         layout.addWidget(minimize_button)
         layout.addWidget(self.maximize_button)
@@ -480,9 +478,6 @@ class MainWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        desktop = QApplication.desktop()
-        screen_width = desktop.screenGeometry().width()
-        screen_height = desktop.screenGeometry().height()
         stacked_widget = QStackedWidget(self)
         initial_screen = InitialScreen()
         message_screen = MessageScreen()
@@ -490,7 +485,17 @@ class MainWindow(QMainWindow):
         stacked_widget.addWidget(initial_screen)
         stacked_widget.addWidget(message_screen)
         stacked_widget.addWidget(notes_screen)
-        self.setGeometry(0, 0, screen_width, screen_height)
+
+        # --- MODIFIED CODE ---
+        # Set a fixed size for the window
+        self.resize(1200, 720)
+        
+        # Center the window on the screen
+        screen_geometry = QApplication.desktop().screenGeometry()
+        x = (screen_geometry.width() - self.width()) // 2
+        y = (screen_geometry.height() - self.height()) // 2
+        self.move(x, y)
+        
         self.setStyleSheet("background-color: black;")
         top_bar = CustomTopBar(self, stacked_widget)
         self.setMenuWidget(top_bar)

@@ -1,5 +1,13 @@
-# Import required libraries
-from AppOpener import close, open as appopen  # Import functions to open and close apps.
+
+import platform
+import subprocess  # Import subprocess for interacting with the system.
+import os  # Import os for operating system functionalities.
+
+# Conditionally import AppOpener only on Windows
+IS_WINDOWS = platform.system() == "Windows"
+if IS_WINDOWS:
+    from AppOpener import close, open as appopen
+
 from webbrowser import open as webopen  # Import web browser functionality.
 from pywhatkit import search, playonyt  # Import functions for search and YouTube playback.
 from dotenv import dotenv_values  # Import dotenv to manage environment variables.
@@ -7,11 +15,9 @@ from bs4 import BeautifulSoup  # Import BeautifulSoup for parsing HTML content.
 from rich import print  # Import rich for styled console output.
 from groq import Groq  # Import Groq for AI Chat functionalities.
 import webbrowser  # Import webbrowser for opening URLs.
-import subprocess  # Import subprocess for interacting with the system.
 import requests  # Import requests for making HTTP requests.
 import keyboard  # Import keyboard for keyboard-related actions.
 import asyncio  # Import asyncio for asynchronous programming.
-import os  # Import os for operating system functionalities.
 
 # Load environment variables from the .env file.
 env_vars = dotenv_values(".env")
@@ -37,8 +43,13 @@ professional_responses = [
 # List to store chatbot messages.
 messages = []
 
-# System message to provide context to the chatbot.
-SystemChatBot = [{"role": "system", "content": f"Hello, I am {os.environ['Username']}. You're a content writer. You have to write content like letters, codes , applications , emails, articles, and other professional documents as requested."}]
+# System message to provide context to the chatbot using a cross-platform method to get the username.
+try:
+    current_user = os.getlogin()
+except OSError:
+    current_user = os.environ.get("USER", os.environ.get("USERNAME", "user"))
+
+SystemChatBot = [{"role": "system", "content": f"Hello, I am {current_user}. You're a content writer. You have to write content like letters, codes , applications , emails, articles, and other professional documents as requested."}]
 
 # Function to perform a Google search.
 def GoogleSearch(Topic):
@@ -48,10 +59,14 @@ def GoogleSearch(Topic):
 # Function to generate content using AI and save it to a file.
 def Content(Topic):
     
-    # Nested function to open a file in Notepad.
-    def OpenNotepad(File):
-        default_text_editor = 'notepad.exe'  # Default text editor.
-        subprocess.Popen([default_text_editor, File])  # Open the file in Notepad.
+    # Nested function to open a file with the default text editor.
+    def OpenFile(File):
+        if IS_WINDOWS:
+            # On Windows, use 'notepad.exe'.
+            subprocess.Popen(['notepad.exe', File])
+        else:
+            # On Linux/macOS, use 'xdg-open', which uses the default application.
+            subprocess.Popen(['xdg-open', File])
     
     # Nested function to generate content using the AI chatbot.
     def ContentWriterAI(prompt):
@@ -81,12 +96,17 @@ def Content(Topic):
     Topic: str = Topic.replace("Content ", "")  # Remove 'Content ' from the topic.
     ContentByAI = ContentWriterAI(Topic)  # Generate content using AI.
 
-    # Save the generated content to a text file.
-    with open(rf"Data\{Topic.lower().replace(' ', '')}.txt", "w", encoding="utf-8") as file:
-        file.write(ContentByAI)  # Write the content to the file.
-        file.close()
+    # Ensure the 'Data' directory exists
+    if not os.path.exists("Data"):
+        os.makedirs("Data")
 
-    OpenNotepad(rf"Data\{Topic.lower().replace(' ', '')}.txt")
+    file_path = os.path.join("Data", f"{Topic.lower().replace(' ', '')}.txt")
+
+    # Save the generated content to a text file.
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(ContentByAI)  # Write the content to the file.
+
+    OpenFile(file_path)
     return True  # Indicate success.
 
 def YoutubeSearch(Topic):
@@ -99,73 +119,88 @@ def PlayYoutube(query):
     return True  # Indicate success.
 
 def OpenApp(app , sess=requests.session()):
+    if IS_WINDOWS:
+        try:
+            appopen(app, match_closest=True, output=True)
+            return True
+        except:
+            pass  # Fallback to web search
+    else: # For Linux/macOS
+        try:
+            # On Linux, application commands are typically lowercase.
+            app_command = app.lower().replace(" ", "")
+            subprocess.Popen([app_command])
+            return True
+        except FileNotFoundError:
+            # If the app isn't found locally, fall back to a web search.
+            print(f"[bold yellow]App '{app}' not found locally. Searching online...[/bold yellow]")
+            pass # Fallback to web search
+    
+    # Fallback web search logic if app fails to open
+    def extract_links(html):
+        if html is None:
+            return []
+        soup = BeautifulSoup(html, 'html.parser')
+        links = soup.find_all('a', {'jsname':'UWckNb'})
+        return [link.get('href') for link in links]
 
-    try:
-        appopen(app, match_closest=True, output=True)
-    except:
-        def extract_links(html):
-            if html is None:
-                return []
-            soup = BeautifulSoup(html, 'html.parser')
-            links = soup.find_all('a', {'jsname':'UWckNb'})
-            return [link.get('href') for link in links]
+    def search_google(query):
+        url = f"https://www.google.com/search?q={query}"
+        headers = {"User-Agent" : useragent}
+        response =  sess.get(url, headers=headers)
 
-
-        def search_google(query):
-            url = f"https://www.google.com/search?q={query}"
-            headers = {"User_Agent" : useragent}
-            response =  sess.get(url, headers=headers)
-
-            if response.status_code == 200:
-                return response.text
-            else:
-                print("Failed to retrive search results.")
-            return None
-        
-        html = search_google(app)
-
-        if html:
+        if response.status_code == 200:
+            return response.text
+        else:
+            print("[bold red]Failed to retrieve search results.[/bold red]")
+        return None
+    
+    html = search_google(app)
+    if html:
+        try:
             link = extract_links(html)[0]
             webopen(link)
-
-        return True
+        except IndexError:
+            print(f"[bold red]No web link found for '{app}'.[/bold red]")
+    return True
 
 
 def CloseApp(app):
-
-    if "chrome" in app:
-        pass
-    else:
+    if IS_WINDOWS:
+        if "chrome" in app:
+            pass # Special handling can be added here if needed
         try:
             close(app, match_closest=True , output=True , throw_error = True)
             return True
         except:
             return False
+    else: # For Linux/macOS
+        try:
+            # Use 'pkill' with '-i' for case-insensitive matching.
+            subprocess.run(["pkill", "-i", app], check=True, capture_output=True)
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            # Fails if pkill command fails or process is not found.
+            return False
         
 def System(command):
-    def mute():
-        keyboard.press_and_release("volume mute")
-
-    def unmute():
-        keyboard.press_and_release("volume mute")
-
-    def volume_up():
-        keyboard.press_and_release("volume up")
-
-    def volume_down():
-        keyboard.press_and_release("volume down")
-
-    if command == "mute":
-        mute()
-    elif command == "unmute":
-        unmute()
-    elif command == "volume up":
-        volume_up()
-
-    elif command == "volume down":
-        volume_down()
-
-    return True
+    # This function uses the 'keyboard' library which might require root privileges on Linux.
+    # An alternative for volume control on Linux is using 'amixer' or 'pactl' commands.
+    # For now, we'll keep it as is, but be aware of potential permission issues.
+    try:
+        if command == "mute":
+            keyboard.press_and_release("volume mute")
+        elif command == "unmute":
+            keyboard.press_and_release("volume mute")
+        elif command == "volume up":
+            keyboard.press_and_release("volume up")
+        elif command == "volume down":
+            keyboard.press_and_release("volume down")
+        return True
+    except Exception as e:
+        print(f"[bold red]System command failed: {e}[/bold red]")
+        print("[bold yellow]On Linux, this may require running the script with 'sudo' privileges.[/bold yellow]")
+        return False
 
 
 async def TranslateAndExecute(commands: list[str]):
@@ -175,12 +210,11 @@ async def TranslateAndExecute(commands: list[str]):
         if command.startswith("open "):
             if "open it" in command:
                 pass
-            if "open file" in command:
+            elif "open file" in command:
                 pass
             else:
                 fun = asyncio.to_thread(OpenApp, command.removeprefix("open "))
                 funcs.append(fun)
-
         elif command.startswith("general "):
             pass
         elif command.startswith("realtime "):
@@ -205,16 +239,34 @@ async def TranslateAndExecute(commands: list[str]):
             funcs.append(fun)
         else:
             print(f"No Functions Found For {command}")
-    results =   await asyncio.gather(*funcs)
-
-    for result in results:
-        if isinstance(result, str):
-            yield result
-        else:
-            yield result
+    
+    if funcs:
+        results = await asyncio.gather(*funcs)
+        for result in results:
+            if isinstance(result, str):
+                yield result
+            else:
+                yield result
 
 async def Automation(commands: list[str]):
     async for result in TranslateAndExecute(commands):
         pass
 
     return True
+
+# Example of how to run the automation (add this if you don't have a main execution block)
+if __name__ == "__main__":
+    # Example commands to test the functions
+    # To run this, you would call asyncio.run(Automation(test_commands))
+    test_commands = [
+        # "open firefox", # Example for Linux
+        # "open vscode", # This may need to be 'code' on Linux
+        # "close firefox",
+        # "content about python programming"
+    ]
+    if test_commands:
+        print("Running example commands...")
+        asyncio.run(Automation(test_commands))
+        print("Example commands finished.")
+    else:
+        print("No example commands to run. The script is ready.") 

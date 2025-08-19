@@ -31,6 +31,12 @@
 - 🎯 Intelligent task automation
 
 Transform simple voice commands into complex digital tasks with unprecedented ease and efficiency.
+#### 📥 **Download & Run Instantly**  
+No setup required! You can directly download the pre-built executable :  
+
+➡️ [Download `main.exe`](https://github.com/PavithraNelluri/VYOM/releases/download/v1.0.0/main.exe)
+
+Just click the file, and VYOM will start running on your system.
 
 </div>
 

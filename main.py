@@ -32,7 +32,7 @@ subprocesses = []
 Functions = ["open", "close", "play", "system", "content", "google search", "youtube search"]
 
 def ShowDefaultChatIfNoChats():
-    file = open(r'Data\ChatLog.json','r', encoding='utf-8')
+    file = open(os.path.join('Data', 'ChatLog.json'),'r', encoding='utf-8')
     if len(file.read())<5:
         with open(TempDirectoryPath('Database.data'), 'w', encoding='utf-8') as file:
             file.write("")
@@ -41,7 +41,7 @@ def ShowDefaultChatIfNoChats():
             file.write(DefaultMessage)
 
 def ReadChatLogJson():
-    with open(r'Data\ChatLog.json', 'r', encoding='utf-8') as file:
+    with open(os.path.join('Data', 'ChatLog.json'), 'r', encoding='utf-8') as file:
         chatlog_data = json.load(file)
     return chatlog_data
 
@@ -179,11 +179,11 @@ def MainExecution():
     
     if ImageExecution == True:
         
-        with open(r"Frontend\Files\ImageGeneration.data", "w") as file:
+        with open(os.path.join("Frontend", "Files", "ImageGeneration.data"), "w") as file:
             file.write(f"{ImageGenerationQuery},True")
         
         try:
-            p1 = subprocess.Popen(['python', r'Backend\ImageGeneration.py'],
+            p1 = subprocess.Popen(['python', os.path.join('Backend', 'ImageGeneration.py')],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 stdin=subprocess.PIPE, shell=True)
             subprocesses.append(p1)

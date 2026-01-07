@@ -73,7 +73,7 @@ def Content(Topic):
         messages.append({"role": "user", "content": f"{prompt}"})  # Add the user's prompt to messages.
         
         completion = client.chat.completions.create(
-            model="llama3-70b-8192",  # Specify the AI model.
+            model="llama-3.3-70b-versatile",  # Specify the AI model.
             messages=SystemChatBot + messages,  # Include system instructions and chat history.
             max_tokens=2048,  # Limit the maximum tokens in the response.
             temperature=0.7,  # Adjust response randomness.

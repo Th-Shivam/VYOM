@@ -11,14 +11,14 @@ AssistantVoice = env_vars.get("AssistantVoice")  # Get the AssistantVoice from t
 
 # Asynchronous function to convert text to an audio file
 async def TextToAudioFile(text) -> None:
-    file_path = r"Data\speech.mp3"  # Define the path where the speech file will be saved
+    file_path = os.path.join("Data", "speech.mp3")  # Define the path where the speech file will be saved
     
     if os.path.exists(file_path):  # Check if the file already exists
         os.remove(file_path)  # If it exists, remove it to avoid overwriting errors
     
     # Create the communicate object to generate speech
     communicate = edge_tts.Communicate(text, AssistantVoice, pitch='+5Hz', rate='+13%')
-    await communicate.save(r"Data\speech.mp3")  # Save the generated speech as an MP3 file
+    await communicate.save(file_path)  # Save the generated speech as an MP3 file
 
 # Function to manage Text-to-Speech (TTS) functionality
 def TTS(Text, func=lambda r=None: True):
@@ -31,7 +31,7 @@ def TTS(Text, func=lambda r=None: True):
             pygame.mixer.init()
             
             # Load the generated speech file into pygame mixer
-            pygame.mixer.music.load(r"Data\speech.mp3")
+            pygame.mixer.music.load(os.path.join("Data", "speech.mp3"))
             pygame.mixer.music.play()
 
             while pygame.mixer.music.get_busy():

@@ -52,7 +52,7 @@ async def generate_images(prompt: str):
 
     for i, image_bytes in enumerate(image_bytes_list):
         if image_bytes is not None:
-            filename = fr"Data\{prompt.replace(' ', '_')}{i + 1}.jpg"
+            filename = os.path.join("Data", f"{prompt.replace(' ', '_')}{i + 1}.jpg")
             with open(filename, "wb") as image_file:
                 image_file.write(image_bytes)
             print(f"✅ Image saved: {filename}")
@@ -67,7 +67,7 @@ def GenerateImages(prompt: str):
 # Main loop to monitor for image generation requests
 while True:
     try:
-        with open(r"Frontend\files\ImageGeneration.data", "r") as f:
+        with open(os.path.join("Frontend", "files", "ImageGeneration.data"), "r") as f:
             Data: str = f.read()
 
         Prompt, Status = Data.strip().split(",")
@@ -76,7 +76,7 @@ while True:
             print("🔄 Generating Images ...")
             GenerateImages(Prompt)
 
-            with open(r"Frontend\files\ImageGeneration.data", "w") as f:
+            with open(os.path.join("Frontend", "files", "ImageGeneration.data"), "w") as f:
                 f.write(f"{Prompt},False")
             break
 

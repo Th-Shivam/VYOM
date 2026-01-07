@@ -1,6 +1,7 @@
 from groq import Groq 
 from json import load , dump
 import datetime
+import os
 from dotenv import dotenv_values
 
 #load env vars fromm the .env file
@@ -34,14 +35,15 @@ SystemChatBot = [
 ]
 
 # Attempt to load the chat history from a JSON file
+chatlog_path = os.path.join("Data", "ChatLog.json")
 
 try:
-    with open(r"Data\ChatLog.json" , "r") as f:
+    with open(chatlog_path, "r") as f:
         messages = load(f)
 except FileNotFoundError:
 
     # If the file does not exist, initialize messages with the system chat bot
-    with open (r"Data\ChatLog.json", "w") as f:
+    with open(chatlog_path, "w") as f:
         dump([],f)
 
 # Function to get real time date and time info 
@@ -74,7 +76,7 @@ def AnswerModifier(Answer):
 def ChatBot(Query):
     #this function sends the user query to the Groq model and returns the response
     try:
-        with open (r"Data\ChatLog.json", "r") as f:
+        with open(chatlog_path, "r") as f:
             messages = load(f)
 
     # append the userss query to the messages list
@@ -82,7 +84,7 @@ def ChatBot(Query):
 
     # makes a request to the Groq model with the messages and system context
         completion = client.chat.completions.create(
-            model="llama3-70b-8192" , 
+            model="llama-3.3-70b-versatile" , 
             messages = SystemChatBot + [{"role": "system", "content": RealTimeInformation()}] + messages,
             max_tokens=1024 , 
             temperature=0.7,
@@ -101,13 +103,13 @@ def ChatBot(Query):
 
         messages.append({"role": "assistant", "content": Answer})
 
-        with open(r"Data\ChatLog.json", "w") as f:
+        with open(chatlog_path, "w") as f:
             dump(messages, f, indent=4)
         return AnswerModifier(Answer = Answer)
 
     except Exception as e:
         print(f"An error occurred: {e}")
-        with open(r"Data\ChatLog.json", "w") as f:
+        with open(chatlog_path, "w") as f:
             dump([], f, indent=4)   
         return ChatBot(Query)
 

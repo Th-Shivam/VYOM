@@ -5,9 +5,11 @@ import requests
 from dotenv import get_key
 import os
 from time import sleep
+from utils.logger import get_logger
 
 # Function to open and display images based on a given prompt
 def open_images(prompt):
+    logger = get_logger(__name__)
     folder_path = r"Data"
     prompt = prompt.replace(" ", "_")
     files = [f"{prompt}{i}.jpg" for i in range(1, 5)]
@@ -17,11 +19,11 @@ def open_images(prompt):
 
         try:
             img = Image.open(image_path)
-            print(f"Opening image: {image_path}")
+            logger.info(f"Opening image: {image_path}")
             img.show()
             sleep(1)
         except Exception as e:
-            print(f"❌ Image not found: {image_path} | Error: {e}")
+            logger.error(f"Image not found: {image_path} | Error: {e}")
 
 API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 headers = {"Authorization": f"Bearer {get_key('.env', 'HuggingFaceAPIKey')}"}
@@ -37,6 +39,7 @@ async def query(payload):
 
 # Async function to generate images based on the given prompt
 async def generate_images(prompt: str):
+    logger = get_logger(__name__)
     tasks = []
 
     for _ in range(4):
@@ -55,9 +58,9 @@ async def generate_images(prompt: str):
             filename = os.path.join("Data", f"{prompt.replace(' ', '_')}{i + 1}.jpg")
             with open(filename, "wb") as image_file:
                 image_file.write(image_bytes)
-            print(f"✅ Image saved: {filename}")
+            logger.info(f"Image saved: {filename}")
         else:
-            print(f"❌ Failed to generate image {i + 1}")
+            logger.error(f"Failed to generate image {i + 1}")
 
 # Wrapper function to generate and open images
 def GenerateImages(prompt: str):
@@ -66,6 +69,7 @@ def GenerateImages(prompt: str):
 
 # Main loop to monitor for image generation requests
 while True:
+    logger = get_logger(__name__)
     try:
         with open(os.path.join("Frontend", "files", "ImageGeneration.data"), "r") as f:
             Data: str = f.read()
@@ -73,7 +77,7 @@ while True:
         Prompt, Status = Data.strip().split(",")
 
         if Status == "True":
-            print("🔄 Generating Images ...")
+            logger.info("Generating Images ...")
             GenerateImages(Prompt)
 
             with open(os.path.join("Frontend", "files", "ImageGeneration.data"), "w") as f:
@@ -84,4 +88,4 @@ while True:
             sleep(1)
 
     except Exception as e:
-        print(f"⚠️ Error: {e}")
+        logger.warning(f"Error: {e}")

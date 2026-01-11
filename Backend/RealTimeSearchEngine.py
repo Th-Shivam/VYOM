@@ -4,6 +4,7 @@ from json import load, dump  # Importing functions to read and write JSON files.
 import datetime  # Importing the datetime module for real-time date and time information.
 from dotenv import dotenv_values  # Importing dotenv_values to read environment variables from a .env file.
 import os
+from utils.logger import get_logger
 # Load environment variables from the .env file.
 env_vars = dotenv_values(".env")
 
@@ -123,4 +124,5 @@ def RealTimeSearchEngine(prompt):
 if __name__ == "__main__":
     while True:
         prompt = input("Enter your query: ")
-        print(RealTimeSearchEngine(prompt))
+        logger = get_logger(__name__)
+        logger.info(RealTimeSearchEngine(prompt))

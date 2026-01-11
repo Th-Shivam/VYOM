@@ -1,8 +1,9 @@
-from groq import Groq 
+from groq import Groq
 from json import load , dump
 import datetime
 import os
 from dotenv import dotenv_values
+from utils.logger import get_logger
 
 #load env vars fromm the .env file
 
@@ -108,9 +109,10 @@ def ChatBot(Query):
         return AnswerModifier(Answer = Answer)
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger = get_logger(__name__)
+        logger.error(f"An error occurred: {e}")
         with open(chatlog_path, "w") as f:
-            dump([], f, indent=4)   
+            dump([], f, indent=4)
         return ChatBot(Query)
 
 if __name__ == "__main__":

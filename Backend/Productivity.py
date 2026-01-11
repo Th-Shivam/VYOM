@@ -2,6 +2,7 @@ import json
 import datetime
 from pathlib import Path
 import os
+from utils.logger import get_logger
 
 class ProductivityManager:
     def __init__(self):
@@ -10,6 +11,7 @@ class ProductivityManager:
         self.todo_file = self.data_dir / "todos.json"
         self.reminders_file = self.data_dir / "reminders.json"
         self.notes_file = self.data_dir / "notes.json"
+        self.logger = get_logger(__name__)
         self._initialize_files()
 
     def _initialize_files(self):
@@ -122,19 +124,19 @@ class ProductivityManager:
     def delete_note(self, title):
         """Delete a note by title"""
         notes = self._read_json(self.notes_file)
-        print(f"Attempting to delete note with title: {title}")
-        print(f"Current notes: {[note['title'] for note in notes]}")
-        
+        self.logger.info(f"Attempting to delete note with title: {title}")
+        self.logger.debug(f"Current notes: {[note['title'] for note in notes]}")
+
         # Convert both the search title and stored titles to lowercase for comparison
         title_lower = title.lower().strip()
         for i, note in enumerate(notes):
             if note["title"].lower().strip() == title_lower:
                 deleted_note = notes.pop(i)
                 self._write_json(self.notes_file, notes)
-                print(f"Successfully deleted note: {deleted_note['title']}")
+                self.logger.info(f"Successfully deleted note: {deleted_note['title']}")
                 return f"Deleted note: {deleted_note['title']}"
-        
-        print(f"Note not found: {title}")
+
+        self.logger.warning(f"Note not found: {title}")
         return f"Note not found: {title}"
 
     def delete_todo(self, task_id):

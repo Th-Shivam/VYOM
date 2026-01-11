@@ -4,6 +4,7 @@ import asyncio  # Import asyncio for asynchronous operations
 import edge_tts  # Import edge_tts for text-to-speech functionality
 import os  # Import os for file path handling
 from dotenv import dotenv_values  # Import dotenv for reading environment variables from a .env file
+from utils.logger import get_logger
 
 # Load environment variables from a .env file
 env_vars = dotenv_values(".env")
@@ -41,7 +42,8 @@ def TTS(Text, func=lambda r=None: True):
             return True
         
         except Exception as e:
-            print(f"Error in TTS : {e}")
+            logger = get_logger(__name__)
+            logger.error(f"Error in TTS : {e}")
 
         finally:
             try:
@@ -50,7 +52,8 @@ def TTS(Text, func=lambda r=None: True):
                 pygame.mixer.quit()  # Quit the pygame mixer
 
             except Exception as e:
-                print(f"Error in TTS finally block: {e}")
+                logger = get_logger(__name__)
+                logger.error(f"Error in TTS finally block: {e}")
 
 def TextToSpeech(Text , func=lambda r=None: True):
     Data = str(Text).split(".")

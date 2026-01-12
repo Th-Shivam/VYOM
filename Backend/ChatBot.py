@@ -4,6 +4,7 @@ import datetime
 import os
 from dotenv import dotenv_values
 from utils.logger import get_logger
+from utils.memory import MemoryManager
 
 #load env vars fromm the .env file
 
@@ -18,8 +19,8 @@ GroqAPIKey = env_vars.get("GroqAPIKey")
 #initialize the Groq client with the API key
 client =  Groq(api_key=GroqAPIKey)
 
-#initialize an empty list to store messages
-messages = []
+# Initialize memory manager
+memory_manager = MemoryManager()
 
 #defiine a system msg that provides conext to the model about its role and behavior
 System = f"""Hello, I am {Username}, You are a very accurate and advanced AI chatbot named {AssistantName} Virtual Yet Omnipotent Machine  which also has real-time up-to-date information from the internet.
@@ -38,14 +39,8 @@ SystemChatBot = [
 # Attempt to load the chat history from a JSON file
 chatlog_path = os.path.join("Data", "ChatLog.json")
 
-try:
-    with open(chatlog_path, "r") as f:
-        messages = load(f)
-except FileNotFoundError:
-
-    # If the file does not exist, initialize messages with the system chat bot
-    with open(chatlog_path, "w") as f:
-        dump([],f)
+# Load memory from file
+memory_manager.load_from_file(chatlog_path)
 
 # Function to get real time date and time info 
 
@@ -77,21 +72,24 @@ def AnswerModifier(Answer):
 def ChatBot(Query):
     #this function sends the user query to the Groq model and returns the response
     try:
-        with open(chatlog_path, "r") as f:
-            messages = load(f)
+        # Check for inactivity and clear memory if needed
+        memory_manager.cleanup_if_inactive()
 
-    # append the userss query to the messages list
-        messages.append({"role": "user", "content": f"{Query}"})
+        # Add user query to memory
+        memory_manager.add_message("user", Query)
 
-    # makes a request to the Groq model with the messages and system context
+        # Get current context
+        messages = memory_manager.get_context()
+
+        # makes a request to the Groq model with the messages and system context
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile" , 
+            model="llama-3.3-70b-versatile" ,
             messages = SystemChatBot + [{"role": "system", "content": RealTimeInformation()}] + messages,
-            max_tokens=1024 , 
+            max_tokens=1024 ,
             temperature=0.7,
             top_p=1 ,
             stream=True,
-            stop=None 
+            stop=None
         )
 
         Answer = ""
@@ -99,20 +97,23 @@ def ChatBot(Query):
         for chunk in completion:
             if chunk.choices[0].delta.content:
                 Answer += chunk.choices[0].delta.content
-        
+
         Answer = Answer.replace("</s>", "")
 
-        messages.append({"role": "assistant", "content": Answer})
+        # Add assistant response to memory
+        memory_manager.add_message("assistant", Answer)
 
-        with open(chatlog_path, "w") as f:
-            dump(messages, f, indent=4)
+        # Save memory to file
+        memory_manager.save_to_file(chatlog_path)
+
         return AnswerModifier(Answer = Answer)
 
     except Exception as e:
         logger = get_logger(__name__)
         logger.error(f"An error occurred: {e}")
-        with open(chatlog_path, "w") as f:
-            dump([], f, indent=4)
+        # Clear memory on error
+        memory_manager.memory.clear()
+        memory_manager.save_to_file(chatlog_path)
         return ChatBot(Query)
 
 if __name__ == "__main__":

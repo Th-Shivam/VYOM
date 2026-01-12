@@ -22,8 +22,10 @@ import subprocess
 import threading
 import json
 import os
+from utils.logger import get_logger
 
 env_vars = dotenv_values(".env")
+logger = get_logger()
 Username = env_vars.get("Username")
 Assistantname = "VYOM"
 DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
@@ -91,10 +93,8 @@ def MainExecution():
     ShowTextToScreen(f"{Username} : {Query}")
     SetAssistantStatus("Thinking ...")
     Decision = FirstLayerDMM(Query)
-    
-    print("")
-    print(f"Decision : {Decision}")
-    print("")
+
+    logger.info(f"Decision: {Decision}")
     
     G = any([i for i in Decision if i.startswith("general")])
     R = any([i for i in Decision if i.startswith("realtime")])
@@ -159,7 +159,7 @@ def MainExecution():
         elif command.startswith("delete note "):
             # Extract the title from the command
             title = command[11:].strip()  # Remove "delete note " prefix and any extra spaces
-            print(f"Attempting to delete note with title: {title}")
+            logger.info(f"Attempting to delete note with title: {title}")
             response = productivity.delete_note(title)
             ShowTextToScreen(f"{Assistantname} : {response}")
             SetAssistantStatus("Answering ...")
@@ -189,7 +189,7 @@ def MainExecution():
             subprocesses.append(p1)
         
         except Exception as e:
-            print(f"Error starting ImageGeneration.py: {e}")
+            logger.error(f"Error starting ImageGeneration.py: {e}")
     
     if G and R:
         

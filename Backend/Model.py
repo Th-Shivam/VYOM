@@ -1,6 +1,7 @@
 import cohere
 from rich import print
 from dotenv import dotenv_values
+from utils.logger import get_logger
 
 env_vars = dotenv_values(".env")
 

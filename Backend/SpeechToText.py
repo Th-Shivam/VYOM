@@ -8,6 +8,7 @@ import os
 import mtranslate as mt
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from utils.logger import get_logger
 
 # Load environment variables from the .env file.
 env_vars = dotenv_values(".env")
@@ -133,7 +134,8 @@ def SpeechRecognition():
         )
         start_button.click()
     except Exception as e:
-        print("Start button not found or not clickable:", e)
+        logger = get_logger(__name__)
+        logger.error(f"Start button not found or not clickable: {e}")
         return ""
 
     while True:

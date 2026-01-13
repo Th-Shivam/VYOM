@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="./Frontend/Graphics/vyom.jpeg" alt="VYOM Banner" width="400" height="160">
+<img src="./Frontend/Graphics/VYOM.jpeg" alt="VYOM Banner" width="400" height="160">
 
 [![Python Version](https://img.shields.io/badge/Python-3.13+-blue?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![MIT License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)

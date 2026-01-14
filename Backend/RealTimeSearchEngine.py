@@ -5,6 +5,8 @@ import datetime  # Importing the datetime module for real-time date and time inf
 from dotenv import dotenv_values  # Importing dotenv_values to read environment variables from a .env file.
 import os
 from utils.logger import get_logger
+from config.settings import DEFAULT_LLM_MODEL
+
 # Load environment variables from the .env file.
 env_vars = dotenv_values(".env")
 
@@ -91,7 +93,7 @@ def RealTimeSearchEngine(prompt):
 
     #generate a response using the Groq model.
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=DEFAULT_LLM_MODEL,
         messages=SystemChatBot + [{"role": "system", "content": Information()}] + messages,
         temperature=0.7,
         max_tokens=2048,

@@ -19,6 +19,7 @@ import webbrowser  # Import webbrowser for opening URLs.
 import requests  # Import requests for making HTTP requests.
 import keyboard  # Import keyboard for keyboard-related actions.
 import asyncio  # Import asyncio for asynchronous programming.
+from config.settings import DEFAULT_LLM_MODEL
 
 # Load environment variables from the .env file.
 env_vars = dotenv_values(".env")
@@ -74,7 +75,7 @@ def Content(Topic):
         messages.append({"role": "user", "content": f"{prompt}"})  # Add the user's prompt to messages.
         
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",  # Specify the AI model.
+            model=DEFAULT_LLM_MODEL,  # Specify the AI model.
             messages=SystemChatBot + messages,  # Include system instructions and chat history.
             max_tokens=2048,  # Limit the maximum tokens in the response.
             temperature=0.7,  # Adjust response randomness.

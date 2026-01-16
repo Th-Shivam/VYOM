@@ -5,6 +5,11 @@ import os
 from dotenv import dotenv_values
 from utils.logger import get_logger
 from utils.memory import MemoryManager
+import time
+
+# File config variables
+MAX_ATTEMPTS = 3 # number of maximum chatbot retries
+COOLDOWN_SECONDS = 5 # cooldown seconds between failed attempts
 
 #load env vars fromm the .env file
 
@@ -69,7 +74,7 @@ def AnswerModifier(Answer):
     modified_answer = '\n'.join(non_empty_lines)
     return modified_answer
 
-def ChatBot(Query):
+def ChatBot(Query, attempt_count=1):
     #this function sends the user query to the Groq model and returns the response
     try:
         # Check for inactivity and clear memory if needed
@@ -110,11 +115,15 @@ def ChatBot(Query):
 
     except Exception as e:
         logger = get_logger(__name__)
-        logger.error(f"An error occurred: {e}")
+        logger.error(f"Attempt {attempt_count}/{MAX_ATTEMPTS} failed: {e}")
         # Clear memory on error
         memory_manager.memory.clear()
         memory_manager.save_to_file(chatlog_path)
-        return ChatBot(Query)
+        if attempt_count >= MAX_ATTEMPTS:
+            logger.error("Maximum attempts exceeded. Giving up.")
+            return "I apologize, I am experiencing some trouble generating this response. Please try again later"
+        time.sleep(COOLDOWN_SECONDS)
+        return ChatBot(Query, attempt_count+1)
 
 if __name__ == "__main__":
     while True:

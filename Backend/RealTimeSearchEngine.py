@@ -4,6 +4,7 @@ from json import load, dump  # Importing functions to read and write JSON files.
 import datetime  # Importing the datetime module for real-time date and time information.
 from dotenv import dotenv_values  # Importing dotenv_values to read environment variables from a .env file.
 import os
+from utils.logger import get_logger
 # Load environment variables from the .env file.
 env_vars = dotenv_values(".env")
 
@@ -21,15 +22,15 @@ System = f"""Hello, I am {Username}, You are a very accurate and advanced AI cha
 *** Just answer the question from the provided data in a professional way. ***"""
 
 # Try to load the chat log from a JSON file, or create an empty one if it doesn't exist.
-chatlog_path = r"Data\ChatLog.json"
+chatlog_path = os.path.join("Data", "ChatLog.json")
 
 # Ensure Data directory exists
 os.makedirs(os.path.dirname(chatlog_path), exist_ok=True)
 try:
-    with open(r"Data\ChatLog.json", "r") as f:
+    with open(chatlog_path, "r") as f:
         messages = load(f)
 except:
-    with open(r"Data\ChatLog.json", "w") as f:
+    with open(chatlog_path, "w") as f:
         dump([], f)
 
 # Function to perform a Google search and format the results.
@@ -78,10 +79,10 @@ def Information():
 
 # Function to handle real-time search and response generation.
 
-def RealtimeSearchEngine(prompt):
+def RealTimeSearchEngine(prompt):
     global SystemChatBot , messages
 
-    with open(r"Data\ChatLog.json", "r") as f:
+    with open(chatlog_path, "r") as f:
         messages = load(f)
     messages.append({"role": "user", "content": f"{prompt}"})
 
@@ -90,7 +91,7 @@ def RealtimeSearchEngine(prompt):
 
     #generate a response using the Groq model.
     completion = client.chat.completions.create(
-        model="llama3-70b-8192",
+        model="llama-3.3-70b-versatile",
         messages=SystemChatBot + [{"role": "system", "content": Information()}] + messages,
         temperature=0.7,
         max_tokens=2048,
@@ -111,7 +112,7 @@ def RealtimeSearchEngine(prompt):
     messages.append({"role": "assistant", "content": Answer})
 
     # Save the updated chat log to the JSON file.
-    with open(r"Data\ChatLog.json", "w") as f:
+    with open(chatlog_path, "w") as f:
         dump(messages, f , indent=4) 
 
     # Remove the most recent system message to avoid cluttering the chat history.
@@ -123,4 +124,5 @@ def RealtimeSearchEngine(prompt):
 if __name__ == "__main__":
     while True:
         prompt = input("Enter your query: ")
-        print(RealtimeSearchEngine(prompt))
+        logger = get_logger(__name__)
+        logger.info(RealTimeSearchEngine(prompt))

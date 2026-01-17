@@ -22,8 +22,10 @@ import subprocess
 import threading
 import json
 import os
+from utils.logger import get_logger
 
 env_vars = dotenv_values(".env")
+logger = get_logger()
 Username = env_vars.get("Username")
 Assistantname = "VYOM"
 DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
@@ -32,7 +34,7 @@ subprocesses = []
 Functions = ["open", "close", "play", "system", "content", "google search", "youtube search"]
 
 def ShowDefaultChatIfNoChats():
-    file = open(r'Data\ChatLog.json','r', encoding='utf-8')
+    file = open(os.path.join('Data', 'ChatLog.json'),'r', encoding='utf-8')
     if len(file.read())<5:
         with open(TempDirectoryPath('Database.data'), 'w', encoding='utf-8') as file:
             file.write("")
@@ -41,7 +43,7 @@ def ShowDefaultChatIfNoChats():
             file.write(DefaultMessage)
 
 def ReadChatLogJson():
-    with open(r'Data\ChatLog.json', 'r', encoding='utf-8') as file:
+    with open(os.path.join('Data', 'ChatLog.json'), 'r', encoding='utf-8') as file:
         chatlog_data = json.load(file)
     return chatlog_data
 
@@ -91,10 +93,8 @@ def MainExecution():
     ShowTextToScreen(f"{Username} : {Query}")
     SetAssistantStatus("Thinking ...")
     Decision = FirstLayerDMM(Query)
-    
-    print("")
-    print(f"Decision : {Decision}")
-    print("")
+
+    logger.info(f"Decision: {Decision}")
     
     G = any([i for i in Decision if i.startswith("general")])
     R = any([i for i in Decision if i.startswith("realtime")])
@@ -108,59 +108,88 @@ def MainExecution():
     
     # Handle productivity-related commands
     for command in Decision:
-        if command.startswith("todo "):
-            task = command[5:]  # Remove "todo " prefix
-            response = productivity.add_todo(task)
+        cmd = command.strip()
+        parts = cmd.split() # handles multiple spaces automatically
+
+        #todo <task....>
+        if parts and parts[0] == "todo":
+            task = " ".join(parts[1:]).strip()
+            if not task:
+                response = "Please provide a todo. Example: todo buy milk"
+            else: 
+                response = productivity.add_todo(task)
+
             ShowTextToScreen(f"{Assistantname} : {response}")
             SetAssistantStatus("Answering ...")
             TextToSpeech(response)
             return True
-            
-        elif command == "list todos":
+        
+        #list todos
+        elif cmd == "list todos":
             response = productivity.list_todos()
             ShowTextToScreen(f"{Assistantname} : {response}")
             SetAssistantStatus("Answering ...")
             TextToSpeech(response)
             return True
             
-        elif command.startswith("complete todo "):
-            task_id = int(command[13:])  # Remove "complete todo " prefix
-            response = productivity.complete_todo(task_id)
+        #complete todo <id>
+        elif len(parts) == 3 and parts[0] == "complete" and parts[1] == "todo":
+            task_id_str = parts[2].strip()
+            if not task_id_str.isdigit():
+                response = "Please provide a valid todo id. Example: complete todo 2"
+            else:
+                response = productivity.complete_todo(int(task_id_str))
+
             ShowTextToScreen(f"{Assistantname} : {response}")
             SetAssistantStatus("Answering ...")
             TextToSpeech(response)
             return True
-            
-        elif command.startswith("delete todo "):
-            task_id = int(command[11:])  # Remove "delete todo " prefix
-            response = productivity.delete_todo(task_id)
+
+        # delete todo <id>
+        elif len(parts) >= 3 and parts[0] == "delete" and parts[1] == "todo":
+        
+            task_id_str = parts[2].strip()
+            if not task_id_str.isdigit():
+                response = "Please provide a valid todo id. Example: delete todo 3"
+            else:
+                response = productivity.delete_todo(int(task_id_str))
+
             ShowTextToScreen(f"{Assistantname} : {response}")
             SetAssistantStatus("Answering ...")
             TextToSpeech(response)
             return True
-            
-        elif command.startswith("note "):
-            note_content = command[5:]  # Remove "note " prefix
-            if ":" in note_content:
+
+        # note 
+        elif parts and parts[0] == "note":
+            note_content = cmd[len("note"):].strip()  # keeps ":" structure intact
+            if ":" not in note_content:
+                response = "Please use format: note Title: content"
+            else:
                 title, content = note_content.split(":", 1)
                 response = productivity.add_note(title.strip(), content.strip())
-                ShowTextToScreen(f"{Assistantname} : {response}")
-                SetAssistantStatus("Answering ...")
-                TextToSpeech(response)
-                return True
-            
-        elif command == "list notes":
+
+            ShowTextToScreen(f"{Assistantname} : {response}")
+            SetAssistantStatus("Answering ...")
+            TextToSpeech(response)
+            return True
+        
+        #list notes 
+        elif cmd == "list notes":
             response = productivity.list_notes()
             ShowTextToScreen(f"{Assistantname} : {response}")
             SetAssistantStatus("Answering ...")
             TextToSpeech(response)
             return True
-            
-        elif command.startswith("delete note "):
-            # Extract the title from the command
-            title = command[11:].strip()  # Remove "delete note " prefix and any extra spaces
-            print(f"Attempting to delete note with title: {title}")
-            response = productivity.delete_note(title)
+        
+        #delete note 
+        elif len(parts) >= 3 and parts[0] == "delete" and parts[1] == "note":
+            title = " ".join(parts[2:]).strip()
+            if not title:
+                response = "Please provide a note title. Example: delete note Meeting"
+            else:
+                logger.info(f"Attempting to delete note with title: {title}")
+                response = productivity.delete_note(title)
+
             ShowTextToScreen(f"{Assistantname} : {response}")
             SetAssistantStatus("Answering ...")
             TextToSpeech(response)
@@ -179,17 +208,17 @@ def MainExecution():
     
     if ImageExecution == True:
         
-        with open(r"Frontend\Files\ImageGeneration.data", "w") as file:
+        with open(os.path.join("Frontend", "Files", "ImageGeneration.data"), "w") as file:
             file.write(f"{ImageGenerationQuery},True")
         
         try:
-            p1 = subprocess.Popen(['python', r'Backend\ImageGeneration.py'],
+            p1 = subprocess.Popen(['python', os.path.join('Backend', 'ImageGeneration.py')],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 stdin=subprocess.PIPE, shell=True)
             subprocesses.append(p1)
         
         except Exception as e:
-            print(f"Error starting ImageGeneration.py: {e}")
+            logger.error(f"Error starting ImageGeneration.py: {e}")
     
     if G and R:
         

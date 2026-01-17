@@ -2,6 +2,7 @@
 import platform
 import subprocess  # Import subprocess for interacting with the system.
 import os  # Import os for operating system functionalities.
+from utils.logger import get_logger
 
 # Conditionally import AppOpener only on Windows
 IS_WINDOWS = platform.system() == "Windows"
@@ -73,7 +74,7 @@ def Content(Topic):
         messages.append({"role": "user", "content": f"{prompt}"})  # Add the user's prompt to messages.
         
         completion = client.chat.completions.create(
-            model="llama3-70b-8192",  # Specify the AI model.
+            model="llama-3.3-70b-versatile",  # Specify the AI model.
             messages=SystemChatBot + messages,  # Include system instructions and chat history.
             max_tokens=2048,  # Limit the maximum tokens in the response.
             temperature=0.7,  # Adjust response randomness.
@@ -133,7 +134,8 @@ def OpenApp(app , sess=requests.session()):
             return True
         except FileNotFoundError:
             # If the app isn't found locally, fall back to a web search.
-            print(f"[bold yellow]App '{app}' not found locally. Searching online...[/bold yellow]")
+            logger = get_logger(__name__)
+            logger.warning(f"App '{app}' not found locally. Searching online...")
             pass # Fallback to web search
     
     # Fallback web search logic if app fails to open
@@ -161,7 +163,8 @@ def OpenApp(app , sess=requests.session()):
             link = extract_links(html)[0]
             webopen(link)
         except IndexError:
-            print(f"[bold red]No web link found for '{app}'.[/bold red]")
+            logger = get_logger(__name__)
+            logger.error(f"No web link found for '{app}'.")
     return True
 
 
@@ -238,7 +241,8 @@ async def TranslateAndExecute(commands: list[str]):
             fun = asyncio.to_thread(System, command.removeprefix("system "))
             funcs.append(fun)
         else:
-            print(f"No Functions Found For {command}")
+            logger = get_logger(__name__)
+            logger.warning(f"No Functions Found For {command}")
     
     if funcs:
         results = await asyncio.gather(*funcs)
@@ -265,8 +269,10 @@ if __name__ == "__main__":
         # "content about python programming"
     ]
     if test_commands:
-        print("Running example commands...")
+        logger = get_logger(__name__)
+        logger.info("Running example commands...")
         asyncio.run(Automation(test_commands))
-        print("Example commands finished.")
+        logger.info("Example commands finished.")
     else:
-        print("No example commands to run. The script is ready.") 
+        logger = get_logger(__name__)
+        logger.info("No example commands to run. The script is ready.")

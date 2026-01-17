@@ -1,40 +1,41 @@
-## Which issue does this PR close?
+## 📝 Description
 
-<!--
-We generally require a GitHub issue to be filed for all bug fixes and enhancements and this helps us generate change logs for our releases. You can link an issue to this PR using the GitHub syntax. For example `Closes #123` indicates that this PR will close issue #123.
--->
+**Linked Issue:** ---
 
-- Closes #.
+## 🏗️ Type of Change
+Please check the options that are relevant:
+- [ ] **New Module** (Addition to `modules/`)
+- [ ] **Core Engine Update** (Changes to `core/`)
+- [ ] **Bug Fix** (Logic, Audio, or Multi-threading errors)
+- [ ] **Documentation Update**
+- [ ] **Dependency Update** (Additions to `requirements.txt`)
 
-## Rationale for this change
+---
 
-<!--
- Why are you proposing this change? If this is already explained clearly in the issue then this section is not needed.
- Explaining clearly why changes are proposed helps reviewers understand your changes and offer better suggestions for fixes.  
--->
+## ⚙️ Technical Checklist
+To maintain VYOM's **Modular Multi-Threaded Architecture**, please confirm the following:
+- [ ] **PEP 8:** My code follows the standard Python style guidelines.
+- [ ] **Thread Safety:** If I modified `core/`, I have checked for potential deadlocks or Race Conditions.
+- [ ] **Modularity:** New modules are decoupled from the main thread and do not block the listener.
+- [ ] **Documentation:** I have updated the `README.md` or added comments to complex logic.
+- [ ] **Installation:** Any new libraries are added to `requirements.txt`.
 
-## What changes are included in this PR?
+---
 
-<!--
-There is no need to duplicate the description in the issue here but it is sometimes worth providing a summary of the individual changes in this PR.
--->
+## 🧪 Testing Evidence
+- **Test Environment:** (e.g., Windows 11, Python 3.13)
+- **Steps taken:**
+  1. ...
+  2. ...
 
-## Are these changes tested?
+---
 
-<!--
-We typically require tests for all PRs in order to:
-1. Prevent the code from being accidentally broken by subsequent changes
-2. Serve as another way to document the expected behavior of the code
+## ❄️ SWOC '26 Status
+- [ ] **I am a contributor for Social Winter of Code 2026.**
 
-If tests are not included in your PR, please explain why (for example, are they covered by existing tests)?
--->
+---
 
-## Are there any user-facing changes?
+## 📸 Preview/Screenshots (Optional)
 
-<!--
-If there are user-facing changes then we may require documentation to be updated before approving the PR.
--->
-
-<!--
-If there are any breaking changes to public APIs, please add the `api change` label.
--->
+---
+*By submitting this PR, I agree to maintain the high technical standards of the VYOM project.*

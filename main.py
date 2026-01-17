@@ -23,6 +23,7 @@ import threading
 import json
 import os
 from utils.logger import get_logger
+from config.settings import CHAT_LOG_PATH
 
 env_vars = dotenv_values(".env")
 logger = get_logger()
@@ -34,7 +35,7 @@ subprocesses = []
 Functions = ["open", "close", "play", "system", "content", "google search", "youtube search"]
 
 def ShowDefaultChatIfNoChats():
-    file = open(os.path.join('Data', 'ChatLog.json'),'r', encoding='utf-8')
+    file = open(CHAT_LOG_PATH, 'r', encoding='utf-8')
     if len(file.read())<5:
         with open(TempDirectoryPath('Database.data'), 'w', encoding='utf-8') as file:
             file.write("")
@@ -43,8 +44,8 @@ def ShowDefaultChatIfNoChats():
             file.write(DefaultMessage)
 
 def ReadChatLogJson():
-    with open(os.path.join('Data', 'ChatLog.json'), 'r', encoding='utf-8') as file:
-        chatlog_data = json.load(file)
+    with open(CHAT_LOG_PATH, 'r', encoding='utf-8') as file:
+            chatlog_data = json.load(file)
     return chatlog_data
 
 def ChatLogIntegration():

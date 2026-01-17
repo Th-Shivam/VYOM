@@ -1,7 +1,6 @@
 from groq import Groq
 from json import load , dump
 import datetime
-import os
 from dotenv import dotenv_values
 from utils.logger import get_logger
 from utils.memory import MemoryManager
@@ -37,7 +36,10 @@ SystemChatBot = [
 ]
 
 # Attempt to load the chat history from a JSON file
-chatlog_path = os.path.join("Data", "ChatLog.json")
+from config.settings import CHAT_LOG_PATH, DEFAULT_LLM_MODEL  
+
+chatlog_path = CHAT_LOG_PATH
+
 
 # Load memory from file
 memory_manager.load_from_file(chatlog_path)
@@ -83,7 +85,7 @@ def ChatBot(Query):
 
         # makes a request to the Groq model with the messages and system context
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile" ,
+            model=DEFAULT_LLM_MODEL,
             messages = SystemChatBot + [{"role": "system", "content": RealTimeInformation()}] + messages,
             max_tokens=1024 ,
             temperature=0.7,

@@ -103,8 +103,11 @@ Just click the file, and VYOM will start running on your system.
 Get VYOM running in under 5 minutes!
 
 ```bash
-# One-liner installation (recommended)
+# One-liner installation (Windows)
 git clone https://github.com/th-shivam/vyom.git && cd vyom && python -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt
+
+# One-liner installation (Mac/Linux)
+git clone https://github.com/th-shivam/vyom.git && cd vyom && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
 ```
 
 Then add your API keys and run:

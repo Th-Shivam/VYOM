@@ -110,8 +110,8 @@ def FirstLayerDMM(prompt : str = "test"):
     response = temp      
 
     #if "(query)" is in the response, recursively call the function for further clarification
-    if "(query)" in response:
-        newresponse = FirstLayerDMM(prompt = prompt)   
+    if any("( query )" in task for task in response):
+        newresponse = FirstLayerDMM(prompt = prompt)
         return newresponse
     else:
         return response

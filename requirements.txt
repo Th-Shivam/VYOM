@@ -11,8 +11,9 @@ cohere
 googlesearch-python
 selenium
 mtranslate
-pygame 
+pygame
 edge-tts
 PyQt5
 webdriver-manager
+pytest
 

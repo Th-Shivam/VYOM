@@ -5,6 +5,9 @@ from dotenv import dotenv_values
 from utils.logger import get_logger
 from utils.memory import MemoryManager
 
+# Initialize logger
+logger = get_logger()
+
 #load env vars fromm the .env file
 
 env_vars = dotenv_values(".env")
@@ -82,6 +85,8 @@ def ChatBot(Query):
 
         # Get current context
         messages = memory_manager.get_context()
+        # Filter messages to only include role and content for API
+        messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
 
         # makes a request to the Groq model with the messages and system context
         completion = client.chat.completions.create(
@@ -111,12 +116,12 @@ def ChatBot(Query):
         return AnswerModifier(Answer = Answer)
 
     except Exception as e:
-        logger = get_logger(__name__)
         logger.error(f"An error occurred: {e}")
         # Clear memory on error
         memory_manager.memory.clear()
         memory_manager.save_to_file(chatlog_path)
-        return ChatBot(Query)
+        # Fallback response with helpful instructions
+        return "I'm having trouble connecting to my knowledge database. Please check your API keys in the .env file and ensure they are valid. You can get API keys from Groq (https://console.groq.com/) and Cohere (https://dashboard.cohere.com/)."
 
 if __name__ == "__main__":
     while True:

@@ -25,7 +25,7 @@ class MemoryManager:
         self.memory.append({
             "role": role,
             "content": content,
-            "timestamp": timestamp
+            "timestamp": timestamp.isoformat()
         })
         self.last_activity = timestamp
         self.trim_memory()
@@ -73,12 +73,11 @@ class MemoryManager:
         """Save memory to a JSON file."""
         try:
             import json
-            # Convert datetime objects to ISO strings for JSON serialization
+            # Remove timestamp for JSON serialization to avoid datetime issues
             data = []
             for msg in self.memory:
                 msg_copy = msg.copy()
-                if "timestamp" in msg_copy:
-                    msg_copy["timestamp"] = msg_copy["timestamp"].isoformat()
+                msg_copy.pop("timestamp", None)
                 data.append(msg_copy)
 
             with open(file_path, "w") as f:

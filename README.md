@@ -58,16 +58,80 @@ To maintain the "Always Listening" capability while executing heavy AI tasks, VY
 For SWOC contributors, please refer to this modular map before submitting PRs:
 ```plaintext
 VYOM/
-├── core/
-│   ├── engine.py      # Main loop & multi-threading orchestration
-│   ├── listener.py    # Voice capture & STT logic
-│   └── speaker.py     # TTS implementation
-├── modules/           # Modular skills (Add new features here)
-│   ├── system_ops.py  # File handling & OS controls
-│   └── web_search.py  # Playwright/Selenium automation
-├── docs/              # Detailed technical documentation
-├── data/              # Model weights, logs, and user configurations
-└── main.py            # Entry point for the application
+│
+├── Backend/                           # Core backend logic for the assistant
+│   │
+│   ├── Automation.py                  # Handles task automation (system tasks, workflows)
+│   ├── ChatBot.py                     # Manages chatbot logic and conversational flow
+│   ├── ImageGeneration.py             # Generates images using AI models/APIs
+│   ├── Model.py                       # Loads and manages AI/ML models
+│   ├── Productivity.py                # Productivity features (notes, reminders, utilities)
+│   ├── RealTimeSearchEngine.py        # Performs real-time web/search queries
+│   ├── SpeechToText.py                # Converts spoken audio input into text
+│   └── TextToSpeech.py                # Converts text responses into spoken audio
+│
+├── Frontend/                          # User interface and client-side logic
+│   │
+│   ├── Files/                         # Runtime data and application state storage
+│   │   │
+│   │   ├── Database.data              # Stores persistent application data
+│   │   ├── ImageGeneration.data       # Stores image generation history/results
+│   │   ├── Mic.data                   # Stores microphone state and audio metadata
+│   │   ├── Responses.data             # Stores chatbot responses
+│   │   └── Status.data                # Tracks application and system status
+│   │
+│   ├── Graphics/                      # UI assets and visual resources
+│   │   │
+│   │   ├── Chats.png                  # Chat interface icon/image
+│   │   ├── Close.png                  # Close window button icon
+│   │   ├── GUI.py                     # GUI layout logic using graphical assets
+│   │   ├── Home.png                   # Home screen icon/image
+│   │   ├── Mic_off.png                # Microphone disabled icon
+│   │   ├── Mic_on.png                 # Microphone enabled icon
+│   │   ├── Minimize.png               # Minimize window icon
+│   │   ├── maximize.png               # Maximize window icon
+│   │   ├── minimize2.png              # Alternate minimize icon
+│   │   ├── settings.png               # Settings icon
+│   │   ├── VYOM.jpeg                  # Project logo / branding image
+│   │   └── jarvis.gif                 # Animated assistant graphic
+│   │
+│   ├── automation/                    # Frontend automation tests
+│   │   └── test_gui.py                # Automated tests for GUI behavior
+│   │
+│   ├── playwright_tests/              # Playwright-based UI testing
+│   │   ├── homepage.png               # Screenshot of homepage during tests
+│   │   ├── index.html                 # Static test page for UI validation
+│   │   └── test_gui.py                # Playwright test cases for GUI
+│   │
+│   ├── tests/                         # Frontend test specifications
+│   │   └── test_issue4.spec.js        # Test case for reported issue #4
+│   │
+│   ├── GUI.py                         # Main frontend GUI controller
+│   └── test_gui.py                    # Manual/functional GUI test script
+│
+├── config/                            # Configuration and environment settings
+│   │
+│   ├── __init__.py                    # Marks config as a Python package
+│   └── settings.py                   # Centralized configuration variables
+│
+├── utils/                             # Shared utility functions
+│   │
+│   ├── logger.py                     # Logging utilities for debugging and monitoring
+│   └── memory.py                     # Memory management and context handling
+│
+├── .env.example                       # Sample environment variables file
+├── .gitignore                         # Files and folders ignored by Git
+├── CODE_OF_CONDUCT.md                 # Community guidelines and behavior rules
+├── CONTRIBUTING.md                    # Contribution guidelines for developers
+├── LICENSE                            # Project licensing information
+├── README.md                          # Project overview and documentation
+│
+├── main.py                            # Application entry point
+├── requirements.txt                  # Python dependencies list
+│
+├── test_logger.py                    # Unit tests for logger utility
+└── test_memory.py                    # Unit tests for memory utility
+
 ```
 
 ---

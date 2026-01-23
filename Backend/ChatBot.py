@@ -10,6 +10,9 @@ import time
 MAX_ATTEMPTS = 3 # number of maximum chatbot retries
 COOLDOWN_SECONDS = 5 # cooldown seconds between failed attempts
 
+# Initialize logger
+logger = get_logger()
+
 #load env vars fromm the .env file
 
 env_vars = dotenv_values(".env")
@@ -87,6 +90,8 @@ def ChatBot(Query, attempt_count=1):
 
         # Get current context
         messages = memory_manager.get_context()
+        # Filter messages to only include role and content for API
+        messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
 
         # makes a request to the Groq model with the messages and system context
         completion = client.chat.completions.create(
@@ -116,16 +121,6 @@ def ChatBot(Query, attempt_count=1):
         return AnswerModifier(Answer = Answer)
 
     except Exception as e:
-        logger = get_logger(__name__)
-        logger.error(f"Attempt {attempt_count}/{MAX_ATTEMPTS} failed: {e}")
-        # Clear memory on error
-        memory_manager.memory.clear()
-        memory_manager.save_to_file(chatlog_path)
-        if attempt_count >= MAX_ATTEMPTS:
-            logger.error("Maximum attempts exceeded. Giving up.")
-            return "I apologize, I am experiencing some trouble generating this response. Please try again later"
-        time.sleep(COOLDOWN_SECONDS)
-        return ChatBot(Query, attempt_count+1)
 
 if __name__ == "__main__":
     while True:

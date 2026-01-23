@@ -4,6 +4,11 @@ import datetime
 from dotenv import dotenv_values
 from utils.logger import get_logger
 from utils.memory import MemoryManager
+import time
+
+# File config variables
+MAX_ATTEMPTS = 3 # number of maximum chatbot retries
+COOLDOWN_SECONDS = 5 # cooldown seconds between failed attempts
 
 # Initialize logger
 logger = get_logger()
@@ -74,7 +79,7 @@ def AnswerModifier(Answer):
     modified_answer = '\n'.join(non_empty_lines)
     return modified_answer
 
-def ChatBot(Query):
+def ChatBot(Query, attempt_count=1):
     #this function sends the user query to the Groq model and returns the response
     try:
         # Check for inactivity and clear memory if needed
@@ -116,12 +121,6 @@ def ChatBot(Query):
         return AnswerModifier(Answer = Answer)
 
     except Exception as e:
-        logger.error(f"An error occurred: {e}")
-        # Clear memory on error
-        memory_manager.memory.clear()
-        memory_manager.save_to_file(chatlog_path)
-        # Fallback response with helpful instructions
-        return "I'm having trouble connecting to my knowledge database. Please check your API keys in the .env file and ensure they are valid. You can get API keys from Groq (https://console.groq.com/) and Cohere (https://dashboard.cohere.com/)."
 
 if __name__ == "__main__":
     while True:

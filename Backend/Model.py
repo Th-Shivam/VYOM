@@ -233,7 +233,7 @@ def FirstLayerDMM(prompt : str = "test"):
     response = temp
 
     #if "(query)" is in the response, recursively call the function for further clarification
-    if any("(query)" in item["intent"] for item in response):
+
         newresponse = FirstLayerDMM(prompt = prompt)
         return newresponse
     else:

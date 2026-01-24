@@ -1,10 +1,17 @@
 from groq import Groq
 from json import load , dump
 import datetime
-import os
 from dotenv import dotenv_values
 from utils.logger import get_logger
 from utils.memory import MemoryManager
+import time
+
+# File config variables
+MAX_ATTEMPTS = 3 # number of maximum chatbot retries
+COOLDOWN_SECONDS = 5 # cooldown seconds between failed attempts
+
+# Initialize logger
+logger = get_logger()
 
 #load env vars fromm the .env file
 
@@ -37,7 +44,10 @@ SystemChatBot = [
 ]
 
 # Attempt to load the chat history from a JSON file
-chatlog_path = os.path.join("Data", "ChatLog.json")
+from config.settings import CHAT_LOG_PATH, DEFAULT_LLM_MODEL  
+
+chatlog_path = CHAT_LOG_PATH
+
 
 # Load memory from file
 memory_manager.load_from_file(chatlog_path)
@@ -69,7 +79,7 @@ def AnswerModifier(Answer):
     modified_answer = '\n'.join(non_empty_lines)
     return modified_answer
 
-def ChatBot(Query):
+def ChatBot(Query, attempt_count=1):
     #this function sends the user query to the Groq model and returns the response
     try:
         # Check for inactivity and clear memory if needed
@@ -80,10 +90,12 @@ def ChatBot(Query):
 
         # Get current context
         messages = memory_manager.get_context()
+        # Filter messages to only include role and content for API
+        messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
 
         # makes a request to the Groq model with the messages and system context
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile" ,
+            model=DEFAULT_LLM_MODEL,
             messages = SystemChatBot + [{"role": "system", "content": RealTimeInformation()}] + messages,
             max_tokens=1024 ,
             temperature=0.7,
@@ -109,12 +121,6 @@ def ChatBot(Query):
         return AnswerModifier(Answer = Answer)
 
     except Exception as e:
-        logger = get_logger(__name__)
-        logger.error(f"An error occurred: {e}")
-        # Clear memory on error
-        memory_manager.memory.clear()
-        memory_manager.save_to_file(chatlog_path)
-        return ChatBot(Query)
 
 if __name__ == "__main__":
     while True:

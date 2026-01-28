@@ -54,10 +54,40 @@ To maintain the "Always Listening" capability while executing heavy AI tasks, VY
 
 ---
 
+## 🛠️ Technologies Used
+
+<div align="center">
+
+| Category | Technologies |
+|----------|-------------|
+| **🐍 Core Language** | ![Python](https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white) |
+| **🤖 AI Models** | ![Groq](https://img.shields.io/badge/Groq-FF6B35?style=flat-square&logo=ai&logoColor=white) ![Cohere](https://img.shields.io/badge/Cohere-39A0ED?style=flat-square&logo=ai&logoColor=white) |
+| **⚡ Performance** | ![Asyncio](https://img.shields.io/badge/Asyncio-4B8BBE?style=flat-square&logo=python&logoColor=white) ![Threading](https://img.shields.io/badge/Threading-FF9500?style=flat-square&logo=python&logoColor=white) |
+| **🧠 NLP** | ![Custom Pipeline](https://img.shields.io/badge/Custom_NLP-8A2BE2?style=flat-square&logo=brain&logoColor=white) |
+
+</div>
+
+---
+
+## ⚡ Quick Start
+
+Get VYOM running in under 5 minutes!
+
+```bash
+# One-liner installation (Windows)
+git clone https://github.com/th-shivam/vyom.git && cd vyom && python -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt
+
+# One-liner installation (Mac/Linux)
+git clone https://github.com/th-shivam/vyom.git && cd vyom && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+```
+
+Then add your API keys and run:
+```bash
+python main.py
 ## 📂 Project Structure
 For SWOC contributors, please refer to this modular map before submitting PRs:
 ```plaintext
-VYOM/
+
 │
 ├── Backend/                           # Core backend logic for the assistant
 │   │
@@ -131,7 +161,6 @@ VYOM/
 │
 ├── test_logger.py                    # Unit tests for logger utility
 └── test_memory.py                    # Unit tests for memory utility
-
 ```
 
 ---

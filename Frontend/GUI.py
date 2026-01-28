@@ -1,3 +1,4 @@
+from typing import Self
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QStackedWidget, QWidget, QLineEdit, QGridLayout, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QLabel, QSizePolicy, QListWidget, QListWidgetItem
 from PyQt5.QtGui import QIcon, QPainter, QMovie, QColor, QTextCharFormat, QFont, QPixmap, QTextBlockFormat
 from PyQt5.QtCore import Qt, QSize, QTimer
@@ -7,17 +8,18 @@ import os
 import json
 from pathlib import Path
 
-env_vars = dotenv_values("*.env")
-Assistantname = "VYOM"
-current_dir = os.getcwd()
-old_chat_message = ""
+BASE_DIR = Path(__file__).resolve().parent.parent
+env_vars = dotenv_values(BASE_DIR / ".env")
+ASSISTANT_NAME = "VYOM"
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- MODIFIED PATHS for cross-platform compatibility ---
-TempDirPath = os.path.join(current_dir, "Frontend", "Files")
-GraphicsDirPath = os.path.join(current_dir, "Frontend", "Graphics")
+TempDirPath = BASE_DIR / "Frontend" / "Files"
+GraphicsDirPath = BASE_DIR / "Frontend" / "Graphics"
 
 # Ensure directories exist
-os.makedirs(TempDirPath, exist_ok=True)
+TempDirPath.mkdir(parents=True, exist_ok=True)
+GraphicsDirPath.mkdir(parents=True, exist_ok=True)
 os.makedirs(GraphicsDirPath, exist_ok=True)
 
 
@@ -71,13 +73,11 @@ def MicButtonInitiated():
 def MicButtonClosed():
     SetMicrophoneStatus("True")
 
-def GraphicsDirectoryPath(Filename):
-    Path = os.path.join(GraphicsDirPath, Filename)
-    return Path
+def GraphicsDirectoryPath(filename):
+    return str(GraphicsDirPath / filename)
 
-def TempDirectoryPath(Filename):
-    Path = os.path.join(TempDirPath, Filename)
-    return Path
+def TempDirectoryPath(filename):
+    return str(TempDirPath / filename)
 
 def ShowTextToScreen(Text):
     with open(os.path.join(TempDirPath, 'Responses.data'), "w", encoding='utf-8') as file:
@@ -87,6 +87,7 @@ class ChatSection(QWidget):
     
     def __init__(self):
         super(ChatSection, self).__init__()
+        self.old_chat_message = ""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(-10, 40, 40, 100)
         layout.setSpacing(-100)
@@ -166,21 +167,19 @@ class ChatSection(QWidget):
         """)
 
     def loadMessages(self):
-        
-        global old_chat_message
-        
-        with open(TempDirectoryPath('Responses.data'), "r", encoding='utf-8') as file:
+         with open(TempDirectoryPath('Responses.data'), "r", encoding='utf-8') as file:
             messages = file.read()
-        
-        if None==messages:
-            pass
-        elif len(messages)<=1:
-            pass
-        elif str(old_chat_message) == str(messages):
-            pass
-        else:
-            self.addMessage(message=messages,color="White")
-            old_chat_message = messages
+
+            if messages is None:
+                pass
+            elif len(messages) <= 1:
+                pass
+            elif str(self.old_chat_message) == str(messages):
+                pass
+            else:
+                self.addMEssage(message=messages, color="white")
+                self.old_chat_message = messages
+
 
     def SpeechRecogText(self):
         with open(TempDirectoryPath('Status.data'), "r", encoding='utf-8') as file:
@@ -342,7 +341,7 @@ class NotesSection(QWidget):
 
     def loadNotes(self):
         try:
-            notes_file = Path("Data/Productivity/notes.json")
+            notes_file = BASE_DIR / "Data" / "Productivity" / "notes.json"
             if notes_file.exists():
                 with open(notes_file, 'r') as f:
                     notes = json.load(f)
@@ -423,7 +422,7 @@ class CustomTopBar(QWidget):
         line_frame.setFrameShape(QFrame.HLine)
         line_frame.setFrameShadow(QFrame.Sunken)
         line_frame.setStyleSheet("border-color: black ;")
-        title_label = QLabel(f" {str(Assistantname).capitalize()} AI   ")
+        title_label = QLabel(f" {ASSISTANT_NAME.capitalize()} AI   ")
         title_label.setStyleSheet("color: black; font-size: 18px; background-color: white;")
         home_button.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
         message_button.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(1))
@@ -501,11 +500,11 @@ class MainWindow(QMainWindow):
         self.setMenuWidget(top_bar)
         self.setCentralWidget(stacked_widget)
 
-def GraphicalUserInterface():
+def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    GraphicalUserInterface()
+    main()

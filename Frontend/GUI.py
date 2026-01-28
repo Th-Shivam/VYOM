@@ -506,5 +506,9 @@ def main():
     window.show()
     sys.exit(app.exec_())
 
+# Alias for backward compatibility
+GraphicalUserInterface = main
+
 if __name__ == "__main__":
     main()
+

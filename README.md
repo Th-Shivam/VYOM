@@ -203,6 +203,31 @@ python main.py
 
 ---
 
+## 🌍 Community & Contributors
+
+### 💖 Contributors  
+Thanks to these amazing people who have contributed to **VYOM** ✨  
+
+<div align="center">
+  <a href="https://github.com/Th-Shivam/VYOM/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=Th-Shivam/VYOM" />
+  </a>
+</div>
+
+<br/>
+
+### ⭐ Project Support
+
+<div align="center">
+
+[![Stars](https://img.shields.io/github/stars/Th-Shivam/VYOM?style=social)](https://github.com/Th-Shivam/VYOM/stargazers)
+&nbsp;&nbsp;
+[![Forks](https://img.shields.io/github/forks/Th-Shivam/VYOM?style=social)](https://github.com/Th-Shivam/VYOM/network/members)
+
+</div>
+
+---
+
 ## 🤝 Contributing
 
 We are proud to be an official part of **Social Winter of Code (SWOC) 2026**! 🚀 

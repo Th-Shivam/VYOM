@@ -22,6 +22,7 @@ import subprocess
 import threading
 import json
 import os
+import queue
 from utils.logger import get_logger
 from config.settings import CHAT_LOG_PATH
 
@@ -34,6 +35,9 @@ DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
 {Assistantname} : Welcome {Username}. I am doing well. How may i help you?'''
 subprocesses = []
 Functions = ["open", "close", "play", "system", "content", "google search", "youtube search"]
+
+# Thread-safe queue for decoupling listener and processor
+execution_queue = queue.Queue()
 
 # Confidence thresholds
 HIGH_CONFIDENCE = 0.75
@@ -274,10 +278,12 @@ def execute_intent(intent):
 
     return False
 
-def MainExecution():
-
-    SetAssistantStatus("Listening ...")
-    Query = SpeechRecognition()
+def ProcessCommand(Query):
+    """Process a single command query. This is the worker function for ProcessorThread."""
+    TaskExecution = False
+    ImageExecution = False
+    ImageGenerationQuery = ""
+    
     ShowTextToScreen(f"{Username} : {Query}")
     SetAssistantStatus("Thinking ...")
     Decision = FirstLayerDMM(Query)
@@ -421,39 +427,67 @@ def CheckTextQuery():
         logger.error(f"Error reading text query: {e}")
     return None
 
-def FirstThread():
-
+def ListenerThread():
+    """Producer thread: Continuously listens for voice/text input and queues commands."""
     while True:
+        try:
+            # Check for text queries first
+            text_query = CheckTextQuery()
+            if text_query:
+                logger.info(f"Text query received: {text_query}")
+                execution_queue.put(text_query)
+                sleep(0.1)  # Small delay to prevent tight loop
+                continue
 
-        # Check for text queries first
-        text_query = CheckTextQuery()
-        if text_query:
-            SetAssistantStatus("Thinking ...")
-            ShowTextToScreen(f"{Username} : {text_query}")
-            Decision = FirstLayerDMM(text_query)
-            logger.info(f"Text Decision: {Decision}")
-            handle_command_with_confidence(Decision, text_query)
-            continue
+            CurrentStatus = GetMicrophoneStatus()
 
-        CurrentStatus = GetMicrophoneStatus()
-
-        if CurrentStatus == "True":
-            MainExecution()
-
-        else:
-            AIStatus = GetAssistantStatus()
-
-            if "Available ..." in AIStatus:
-                sleep(0.1)
-
+            if CurrentStatus == "True":
+                SetAssistantStatus("Listening ...")
+                Query = SpeechRecognition()
+                if Query and Query.strip():
+                    logger.info(f"Voice query received: {Query}")
+                    execution_queue.put(Query)
             else:
-                SetAssistantStatus("Available ...")
+                sleep(0.1)  # Small delay when not listening
+        except Exception as e:
+            logger.error(f"Error in ListenerThread: {e}")
+            sleep(0.5)  # Prevent rapid error loops
+
+def ProcessorThread():
+    """Consumer thread: Processes commands from the queue."""
+    while True:
+        try:
+            # Block until a query is available
+            Query = execution_queue.get()
+            logger.info(f"Processing query: {Query}")
+            
+            # Process the command
+            ProcessCommand(Query)
+            
+            # Mark task as done
+            execution_queue.task_done()
+            
+            # Set status back to available after processing
+            SetAssistantStatus("Available ...")
+        except Exception as e:
+            logger.error(f"Error in ProcessorThread: {e}")
+            execution_queue.task_done()
+            SetAssistantStatus("Available ...")
 
 def SecondThread():
     
     GraphicalUserInterface()
 
 if __name__ == "__main__":
-    thread2 = threading.Thread(target=FirstThread, daemon=True)
-    thread2.start()
+    # Start listener thread (producer)
+    listener_thread = threading.Thread(target=ListenerThread, daemon=True)
+    listener_thread.start()
+    logger.info("Listener thread started")
+    
+    # Start processor thread (consumer)
+    processor_thread = threading.Thread(target=ProcessorThread, daemon=True)
+    processor_thread.start()
+    logger.info("Processor thread started")
+    
+    # Start GUI (blocking call)
     SecondThread()

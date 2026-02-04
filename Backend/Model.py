@@ -232,12 +232,8 @@ def FirstLayerDMM(prompt : str = "test"):
     #update the response with the filtered tasks
     response = temp
 
-    #if "(query)" is in the response, recursively call the function for further clarification
+    return response
 
-        newresponse = FirstLayerDMM(prompt = prompt)
-        return newresponse
-    else:
-        return response
 
 if __name__ == "__main__":
     while True:

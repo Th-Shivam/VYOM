@@ -34,7 +34,13 @@ text_query_file = TempDirectoryPath('TextQuery.data')
 DefaultMessage = f'''{Username} : Hello {Assistantname}, How are you?
 {Assistantname} : Welcome {Username}. I am doing well. How may i help you?'''
 subprocesses = []
+
 Functions = ["open", "close", "play", "system", "content", "google search", "youtube search"]
+
+# Global flags for main loop execution
+TaskExecution = False
+ImageExecution = False
+ImageGenerationQuery = ""
 
 # Thread-safe queue for decoupling listener and processor
 execution_queue = queue.Queue()
@@ -162,9 +168,7 @@ def handle_command_with_confidence(decisions, query):
     return False
 
 def execute_intent(intent):
-    TaskExecution = False
-    ImageExecution = False
-    ImageGenerationQuery = ""
+    global TaskExecution, ImageExecution, ImageGenerationQuery
 
     # Initialize ProductivityManager
     productivity = ProductivityManager()
@@ -280,9 +284,7 @@ def execute_intent(intent):
 
 def ProcessCommand(Query):
     """Process a single command query. This is the worker function for ProcessorThread."""
-    TaskExecution = False
-    ImageExecution = False
-    ImageGenerationQuery = ""
+    global TaskExecution, ImageExecution, ImageGenerationQuery
     
     ShowTextToScreen(f"{Username} : {Query}")
     SetAssistantStatus("Thinking ...")

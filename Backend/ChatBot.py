@@ -121,6 +121,7 @@ def ChatBot(Query, attempt_count=1):
         return AnswerModifier(Answer = Answer)
 
     except Exception as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     while True:

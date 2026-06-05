@@ -11,19 +11,15 @@ co = cohere.Client(api_key=CohereAPIKey)
 
 logger = get_logger()
 
-# List of functions to be used in the model
-
+# List of functions/intents recognized by the model
 funcs = [
-    "exit" , "general" , "realtime" , "open" , "close" , "play" , "generate image" , "system" , "content" , "google search" , "youtube search" , "reminder",
-    "todo", "note", "list todos", "list notes", "complete todo", "delete note", "delete todo"
+    "exit", "general", "realtime", "open", "close", "play", "generate image",
+    "system", "content", "google search", "youtube search", "reminder",
+    "todo", "note", "list todos", "list notes", "complete todo",
+    "delete note", "delete todo"
 ]
 
-#initialize an emppty list to store messages 
-
-messages = []
-
-#define the preamble that guides the model how to categorize the queries 
-
+# Define the preamble that guides the model on how to categorize queries
 preamble = """
 You are a Decision-Making Model for a voice assistant. Your ONLY job is to classify user queries into specific categories. You must respond with EXACTLY one category and the query content in parentheses.
 
@@ -47,7 +43,8 @@ CATEGORIES:
 - 'note (title: content)' - For creating notes
 - 'list notes' - For listing notes
 - 'delete note (title)' - For deleting notes
-- 'exit' - For ending conversation
+- 'reminder (time details)' - For setting reminders
+- 'exit' - For ending the conversation
 
 EXAMPLES:
 User: "open chrome"
@@ -65,174 +62,142 @@ Response: todo buy groceries
 User: "play music"
 Response: play music
 
+User: "remind me about the meeting at 5pm"
+Response: reminder 5pm meeting
+
 Respond with ONLY the category and content, nothing else.
 """
 
-#define a chat history with predefined user-chatbot interactions for context . 
-
+# Define a chat history with predefined user-chatbot interactions for context
 ChatHistory = [
-    {"role" : "User" , "message":"how are you ?"} ,
-    {"role" : "Chatbot" , "message":"general how are you ?"} ,
-    {"role" : "User" , "message":"do you like pizza ?"} , 
-    {"role" : "Chatbot" , "message":"general do you like pizza ?"} ,
-    {"role" : "User" , "message":"open chrome and tell me about mahatma gandhi"} , 
-    {"role" : "Chatbot" , "message":"open chrome , general who is mahatma gandhi ."} ,
-    {"role" : "User" , "message":"open chrome and firefox"} ,
-    {"role" : "Chatbot" , "message":"open chrome , open firefox"},
-    {"role" : "User" , "message":"what is today's date and by the way remind me that i have a dancing performance on 5th augusst 11:00 pm" }, 
-    {"role" : "Chatbot" , "message":"general what is today's date , reminder 11:00 pm 5th august  dancing performance" } ,
-    {"role" : "User" , "message":"chat with me "} , 
-    {"role" : "Chatbot" , "message":"general chat with me"} 
-    
+    {"role": "USER", "message": "how are you ?"},
+    {"role": "CHATBOT", "message": "general how are you ?"},
+    {"role": "USER", "message": "do you like pizza ?"},
+    {"role": "CHATBOT", "message": "general do you like pizza ?"},
+    {"role": "USER", "message": "open chrome and tell me about mahatma gandhi"},
+    {"role": "CHATBOT", "message": "open chrome , general who is mahatma gandhi"},
+    {"role": "USER", "message": "open chrome and firefox"},
+    {"role": "CHATBOT", "message": "open chrome , open firefox"},
+    {"role": "USER", "message": "what is today's date and remind me that i have a dancing performance on 5th august 11:00 pm"},
+    {"role": "CHATBOT", "message": "general what is today's date , reminder 11:00 pm 5th august dancing performance"},
+    {"role": "USER", "message": "chat with me"},
+    {"role": "CHATBOT", "message": "general chat with me"},
 ]
 
-def rule_based_intent_detection(prompt):
-    """Simple rule-based intent detection as fallback when API fails"""
+
+def rule_based_intent_detection(prompt: str):
+    """Simple rule-based intent detection as fallback when API fails."""
     prompt_lower = prompt.lower().strip()
 
-    # Check for exit commands
     if any(word in prompt_lower for word in ["bye", "exit", "quit", "goodbye", "see you"]):
         return "exit", 0.9
 
-    # Check for open commands
     if prompt_lower.startswith("open "):
-        app = prompt_lower[5:].strip()
-        return f"open {app}", 0.8
+        return f"open {prompt_lower[5:].strip()}", 0.8
 
-    # Check for close commands
     if prompt_lower.startswith("close "):
-        app = prompt_lower[6:].strip()
-        return f"close {app}", 0.8
+        return f"close {prompt_lower[6:].strip()}", 0.8
 
-    # Check for play commands
     if prompt_lower.startswith("play "):
-        song = prompt_lower[5:].strip()
-        return f"play {song}", 0.8
+        return f"play {prompt_lower[5:].strip()}", 0.8
 
-    # Check for generate image commands
     if "generate image" in prompt_lower or "create image" in prompt_lower:
         return f"generate image {prompt}", 0.7
 
-    # Check for todo commands
     if "add a todo" in prompt_lower or "add todo" in prompt_lower:
-        task = prompt.replace("add a todo", "").replace("add todo", "").strip()
+        task = prompt_lower.replace("add a todo", "").replace("add todo", "").strip()
         return f"todo {task}", 0.8
 
     if "list todos" in prompt_lower or "show my todos" in prompt_lower:
         return "list todos", 0.9
 
-    # Check for realtime queries (news, current info)
-    if any(word in prompt_lower for word in ["news", "today", "current", "latest", "who is", "what is"]):
+    if "list notes" in prompt_lower or "show my notes" in prompt_lower:
+        return "list notes", 0.9
+
+    if any(word in prompt_lower for word in ["remind", "reminder"]):
+        return f"reminder {prompt}", 0.8
+
+    if any(word in prompt_lower for word in ["news", "today", "current", "latest"]):
         return f"realtime {prompt}", 0.6
 
-    # Default to general with higher confidence
     return f"general {prompt}", 0.8
 
-def calculate_response_confidence(response, prompt):
-    """Calculate confidence score based on response quality and prompt matching"""
+
+def calculate_response_confidence(response: str, prompt: str) -> float:
+    """Calculate confidence score based on response quality and prompt matching."""
     response_lower = response.lower().strip()
     prompt_lower = prompt.lower().strip()
 
-    # High confidence if response directly matches expected format
-    if any(response_lower.startswith(func) for func in funcs):
-        # Check if the response contains the original prompt or similar content
-        if prompt_lower in response_lower or any(word in response_lower for word in prompt_lower.split()):
+    # High confidence if response starts with a recognized multi-word or single-word func
+    matched_func = next((f for f in sorted(funcs, key=len, reverse=True)
+                         if response_lower.startswith(f)), None)
+    if matched_func:
+        prompt_words = set(prompt_lower.split())
+        response_words = set(response_lower.split())
+        if prompt_words & response_words:
             return 0.9
-        else:
-            return 0.8
+        return 0.8
 
-    # Medium confidence for partial matches
-    if any(func in response_lower for func in funcs):
+    if any(f in response_lower for f in funcs):
         return 0.7
 
-    # Lower confidence for ambiguous responses
     if len(response.split()) < 3:
         return 0.5
 
-    # Default confidence
     return 0.6
 
-#define the main function that will be used for decision making in queries
 
-def FirstLayerDMM(prompt : str = "test"):
-    #add the users query to the messages list
-    messages.append({"role": "User", "content": f"{prompt}"})
+def parse_intent(task: str, funcs: list) -> str | None:
+    """
+    Match a task string against known multi-word and single-word function names.
+    Returns the matched intent string or None if no match found.
+    """
+    task_lower = task.lower().strip()
+    # Check multi-word funcs first (longest match wins)
+    for func in sorted(funcs, key=len, reverse=True):
+        if task_lower.startswith(func):
+            return task  # Return original case
+    return None
 
-    # Prepare messages for Chat API
-    chat_messages = [
-        {"role": "system", "content": preamble}
-    ]
 
-    # Add chat history
-    for msg in ChatHistory:
-        chat_messages.append({"role": "user", "content": msg["message"]})
-        chat_messages.append({"role": "assistant", "content": "general " + msg["message"]})  # Simplified for history
+def FirstLayerDMM(prompt: str = "test"):
+    """Classify a user prompt into one or more intent categories."""
 
-    # Add current prompt
-    chat_messages.append({"role": "user", "content": prompt})
-
-    # Try API first, fallback to rule-based if API fails
+    # Try Cohere API first, fallback to rule-based if it fails
     try:
-        # Prepare chat history for Cohere API
-        chat_history = []
-        for msg in chat_messages[1:]:  # Skip the system message
-            if msg["role"] == "user":
-                chat_history.append({"role": "USER", "message": msg["content"]})
-            elif msg["role"] == "assistant":
-                chat_history.append({"role": "CHATBOT", "message": msg["content"]})
-
         response_obj = co.chat(
             model="command-r-08-2024",
             message=prompt,
-            chat_history=chat_history,
+            preamble=preamble,          # FIX: pass preamble correctly
+            chat_history=ChatHistory,   # FIX: use properly formatted ChatHistory
             max_tokens=100,
-            temperature=0.7,
+            temperature=0.1,            # FIX: low temperature for consistent classification
         )
         response = response_obj.text.strip()
-        # Calculate confidence based on response quality
         confidence = calculate_response_confidence(response, prompt)
-        use_api = True
+
     except Exception as e:
         logger.error(f"API Error: {e}. Using rule-based fallback.")
-        # Rule-based fallback for basic intent detection
-        intent, confidence = rule_based_intent_detection(prompt)
-        # Format as string to match API response processing
-        response = intent
-        use_api = False
+        response, confidence = rule_based_intent_detection(prompt)
 
-    #remove newline characters and split response
+    # Normalize separators and split into individual tasks
+    # FIX: handle both " , " and "," and ", " as separators
     response = response.replace("\n", " ")
-    response = response.split(" , ")
+    raw_tasks = [t.strip() for t in response.replace(",", " , ").split(" , ") if t.strip()]
 
-    #strip leading and trailing whitespace from each task
-    response = [i.strip() for i in response]
+    # Filter to only valid recognized intents
+    result = []
+    for task in raw_tasks:
+        matched = parse_intent(task, funcs)
+        if matched:
+            result.append({"intent": matched, "confidence": confidence})
 
-    #initialize an empty list to filter valid tasks .
-    temp = []
+    # Fallback: if nothing matched, treat entire prompt as general query
+    if not result:
+        logger.warning(f"No valid intent found for prompt: '{prompt}'. Defaulting to general.")
+        result.append({"intent": f"general {prompt}", "confidence": 0.8})
 
-    #filter the tasks based on recognized functions keywords .
-    for task in response:
-        # Split the task into type and content
-        parts = task.split(" ", 1)
-        if len(parts) == 2:
-            intent_type, content = parts
-            if intent_type in funcs:
-                # For general/realtime, keep the full query, for others use the content
-                if intent_type in ["general", "realtime"]:
-                    temp.append({"intent": f"{intent_type} {content}", "confidence": confidence})
-                else:
-                    temp.append({"intent": f"{intent_type} {content}", "confidence": confidence})
-        elif task in funcs:
-            temp.append({"intent": task, "confidence": confidence})
-
-    # If no valid tasks found, create a default general intent
-    if not temp:
-        temp.append({"intent": f"general {prompt}", "confidence": 0.8})
-
-    #update the response with the filtered tasks
-    response = temp
-
-    return response
+    return result
 
 
 if __name__ == "__main__":

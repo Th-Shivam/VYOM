@@ -15,6 +15,7 @@ from Backend.SpeechToText import SpeechRecognition
 from Backend.ChatBot import ChatBot
 from Backend.TextToSpeech import TextToSpeech
 from Backend.Productivity import ProductivityManager
+from Backend.Wake_Word import wake_manager
 from dotenv import dotenv_values
 from asyncio import run
 from time import sleep
@@ -446,9 +447,20 @@ def ListenerThread():
             if CurrentStatus == "True":
                 SetAssistantStatus("Listening ...")
                 Query = SpeechRecognition()
+
                 if Query and Query.strip():
-                    logger.info(f"Voice query received: {Query}")
-                    execution_queue.put(Query)
+                    processed_query = wake_manager.process(Query)
+
+                    if processed_query is None:
+                        logger.info("Wake word not detected")
+                        continue
+
+                    if processed_query == "":
+                        logger.info("Wake word detected without command")
+                        continue
+
+                    logger.info(f"Voice query received: {processed_query}")
+                    execution_queue.put(processed_query)
             else:
                 sleep(0.1)  # Small delay when not listening
         except Exception as e:

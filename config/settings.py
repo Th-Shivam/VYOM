@@ -32,3 +32,10 @@ PRODUCTIVITY_DIR.mkdir(exist_ok=True)
 FILES_DIR.mkdir(exist_ok=True)
 GRAPHICS_DIR.mkdir(exist_ok=True)
 #main
+# Wake Word Configuration
+WAKE_WORD_ENABLED = True
+
+WAKE_WORDS = [
+    "hey vyom",
+    "vyom"
+]

@@ -25,6 +25,7 @@ import os
 import queue
 from utils.logger import get_logger
 from config.settings import CHAT_LOG_PATH
+from utils.config_validator import validate_env_config
 
 env_vars = dotenv_values(".env")
 logger = get_logger()
@@ -481,6 +482,7 @@ def SecondThread():
     GraphicalUserInterface()
 
 if __name__ == "__main__":
+    validate_env_config() 
     # Start listener thread (producer)
     listener_thread = threading.Thread(target=ListenerThread, daemon=True)
     listener_thread.start()

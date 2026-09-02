@@ -74,11 +74,20 @@ To maintain the "Always Listening" capability while executing heavy AI tasks, VY
 Get VYOM running in under 5 minutes!
 
 ```bash
-# One-liner installation (Windows)
-git clone https://github.com/th-shivam/vyom.git && cd vyom && python -m venv .venv && .venv\Scripts\activate && pip install -r requirements.txt
+# Clone the repository
+git clone https://github.com/th-shivam/vyom.git
+cd vyom
 
-# One-liner installation (Mac/Linux)
-git clone https://github.com/th-shivam/vyom.git && cd vyom && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+# Create and activate virtual environment
+# Windows:
+python -m venv .venv
+.venv\Scripts\activate
+# Mac/Linux:
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
 Then add your API keys and run:
